@@ -16,7 +16,6 @@ public class ExceptionManager {
 
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<?> runtimeExceptionHandler(RuntimeException e) {
-        System.out.println("Hello");
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(e.getMessage());
     }
