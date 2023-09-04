@@ -1,10 +1,13 @@
 package com.project.boongobbang.domain.entity.user;
 
+import com.project.boongobbang.domain.entity.roommate.Notification;
+import com.project.boongobbang.domain.entity.roommate.Roommate;
 import com.project.boongobbang.enums.*;
 import lombok.*;
 
 import javax.persistence.*;
 import java.time.LocalDate;
+import java.util.List;
 
 @Entity
 @AllArgsConstructor
@@ -64,8 +67,42 @@ public class User {
     @Column(name = "user_photo")
     private String userPhotoUrl;
 
-    //MAPPING
     @Embedded
     UserAverageScore userAverageScore;
+
+    //MAPPING
+
+    //Roommate
+    @OneToMany(mappedBy = "user1", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Roommate> sentRoommateList;
+
+    @OneToMany(mappedBy = "user2", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Roommate> receivedRoommateList;
+
+    //Notification
+    @OneToMany(mappedBy = "checkUser")
+    private List<Notification> receivedNotificationList;
+
+    //UserScore
+    @OneToMany(mappedBy = "ratingUser", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserScore> gaveScoreList;
+
+    @OneToMany(mappedBy = "ratedUser", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserScore> receivedScoreList;
+
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "user_type")
+    private UserType userType;
+    public void setUserType(String userType){
+        this.userType = UserType.valueOf(userType);
+    }
+
+    @Column(name = "is_paired")
+    private boolean isPaired;
+    public void setIsPaired(boolean isPaired){
+        this.isPaired = isPaired;
+    }
+
 
 }
