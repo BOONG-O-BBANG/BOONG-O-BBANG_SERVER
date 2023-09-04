@@ -30,9 +30,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.project.boongobbang.enums.CleanCount.*;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
 @Slf4j
@@ -76,6 +79,38 @@ public class UserService {
                         .userPhotoUrl(dto.getUserPhotoUrl())
                         .role(Role.ROLE_USER)
                         .build());
+
+
+    }
+
+    //유저 생성/수정 시 UserType 설정
+    public String determineUserType(User user) {
+
+        List<Function<User, String>> userCharacteristics = Arrays.asList(
+                u -> {
+                    if (u.getUserCleanCount() == ZERO_TO_ONE) {
+                        return "CLEAN_0_1_";
+                    } else if (u.getUserCleanCount() == TWO_TO_FOUR) {
+                        return "CLEAN_2_4_";
+                    } else if (u.getUserCleanCount() == MORE_THAN_FIVE) {
+                        return "CLEAN_MORE_5_";
+                    } else {
+                        throw new IllegalArgumentException("일치하는 유저타입이 없습니다");
+                    }
+                },
+                u -> {
+                    String mbti = u.getUserMBTI().toString();
+                    return mbti.charAt(0) + "_" + mbti.charAt(2) + "_";
+                },
+                u -> u.getUserIsSmoker() ? "SMOKER_" : "NON_SMOKER_",
+                u -> u.getUserIsNocturnal() ? "NOCTURNAL" : "DIURNAL"
+        );
+
+        String userTypeStr = userCharacteristics.stream()
+                .map(f -> f.apply(user))
+                .collect(Collectors.joining());
+
+        return userTypeStr;
     }
 
     public TokenResponseDto signIn(UserSignInDto dto) {
