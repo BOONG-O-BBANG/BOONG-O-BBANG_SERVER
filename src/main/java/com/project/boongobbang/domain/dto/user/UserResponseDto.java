@@ -1,6 +1,6 @@
 package com.project.boongobbang.domain.dto.user;
 
-import com.project.boongobbang.domain.dto.notification.NotificationResponseDto;
+import com.project.boongobbang.domain.dto.roommate.NotificationResponseDto;
 import com.project.boongobbang.domain.dto.roommate.RoommateResponseDto;
 import com.project.boongobbang.domain.entity.user.User;
 import lombok.*;

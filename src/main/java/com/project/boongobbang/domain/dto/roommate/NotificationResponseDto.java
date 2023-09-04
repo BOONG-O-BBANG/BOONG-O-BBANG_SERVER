@@ -1,4 +1,4 @@
-package com.project.boongobbang.domain.dto.notification;
+package com.project.boongobbang.domain.dto.roommate;
 
 import com.project.boongobbang.domain.entity.roommate.Notification;
 import com.project.boongobbang.enums.NotificationType;
