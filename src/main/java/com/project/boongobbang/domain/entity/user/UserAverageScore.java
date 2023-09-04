@@ -20,15 +20,5 @@ public class UserAverageScore extends TimeStamped {
     @OneToOne
     private User user;
 
-    @Column(name = "average_score",precision = 2, scale = 1) // 전체 2자리 중 소수점 1자리
-    private BigDecimal averageScore;
-    public void setAverageScore(BigDecimal averageScore){
-        this.averageScore = averageScore;
-    }
 
-    @Column(name = "rated_count")
-    private Long ratedCount;
-    public void setRatedCount(Long ratedCount) {
-        this.ratedCount = ratedCount;
-    }
 }
