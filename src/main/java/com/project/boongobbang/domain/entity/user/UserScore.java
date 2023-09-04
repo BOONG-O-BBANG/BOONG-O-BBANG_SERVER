@@ -19,9 +19,8 @@ public class UserScore extends TimeStamped {
     @JoinColumn(name = "rating_user_id")
     private User ratingUser; //평가하는 User
 
-    @ManyToOne
-    @JoinColumn(name = "rated_user_id")
-    private User ratedUser; //평가받는 UserId
+    @Column(name = "rated_user_id")
+    private Long ratedUserId; //평가받는 UserId
 
     @Column(name = "score")
     private int score; //평가하는 사람이 평가받는 사람에게 준 점수
