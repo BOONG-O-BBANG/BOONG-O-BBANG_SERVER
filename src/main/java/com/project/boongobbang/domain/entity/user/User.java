@@ -13,6 +13,7 @@ import java.util.List;
 @Entity
 @AllArgsConstructor
 @Getter
+@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder(toBuilder = true)
 public class User {

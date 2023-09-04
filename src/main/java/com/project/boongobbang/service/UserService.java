@@ -1,10 +1,7 @@
 package com.project.boongobbang.service;
 
 import com.project.boongobbang.domain.dto.token.TokenResponseDto;
-import com.project.boongobbang.domain.dto.user.UserSignInDto;
-import com.project.boongobbang.domain.dto.user.UserSignUpDto;
-import com.project.boongobbang.domain.dto.user.UserSimpleDto;
-import com.project.boongobbang.domain.dto.user.UserValidateDto;
+import com.project.boongobbang.domain.dto.user.*;
 import com.project.boongobbang.domain.entity.roommate.Notification;
 import com.project.boongobbang.domain.entity.roommate.Roommate;
 import com.project.boongobbang.domain.entity.user.User;
@@ -30,8 +27,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 
+import javax.transaction.Transactional;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -145,6 +144,56 @@ public class UserService {
 
         return new TokenResponseDto(accessToken, refreshToken);
     }
+
+
+    @Transactional
+    public User updateUser(String userEmail, UserUpdateRequestDto dto){
+        User user = findUserByUserId(userEmail);
+
+        if(!Objects.equals(user.getUserNickname(), dto.getUserNickname())) {
+            user.setUserNickname(dto.getUserNickname());
+        }
+        if(!Objects.equals(user.getUserCleanCount(), dto.getUserCleanCount())) {
+            user.setUserCleanCount(dto.getUserCleanCount());
+        }
+        if(!Objects.equals(user.getUserLocation(), dto.getUserLocation())) {
+            user.setUserLocation(dto.getUserLocation());
+        }
+        if(!Objects.equals(user.getUserMBTI(), dto.getUserMbti())) {
+            user.setUserMBTI(dto.getUserMbti());
+        }
+        if(!Objects.equals(user.getUserHasPet(), dto.getUserHasPet())) {
+            user.setUserHasPet(dto.getUserHasPet());
+        }
+        if(!Objects.equals(user.getUserHasExperience(), dto.getUserHasExperience())) {
+            user.setUserHasExperience(dto.getUserHasExperience());
+        }
+        if(!Objects.equals(user.getUserIsSmoker(), dto.getUserIsSmoker())) {
+            user.setUserIsSmoker(dto.getUserIsSmoker());
+        }
+        if(!Objects.equals(user.getUserIsNocturnal(), dto.getUserIsNocturnal())) {
+            user.setUserIsNocturnal(dto.getUserIsNocturnal());
+        }
+        if(!Objects.equals(user.getUserIntroduction(), dto.getUserIntroduction())) {
+            user.setUserIntroduction(dto.getUserIntroduction());
+        }
+        if(!Objects.equals(user.getUserPhotoUrl(), dto.getUserPhotoUrl())) {
+            user.setUserPhotoUrl(dto.getUserPhotoUrl());
+        }
+
+        user.setUserType(determineUserType(user));
+
+        userRepository.save(user);
+        return user;
+    }
+
+
+
+
+
+
+
+
 
 
 
