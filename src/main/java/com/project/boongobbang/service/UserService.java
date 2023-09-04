@@ -187,6 +187,15 @@ public class UserService {
         return user;
     }
 
+    //유저 삭제
+    @Transactional
+    public UserProfileDto deleteUser(String userEmail){
+        User user = findUserByUserId(userEmail);
+        UserProfileDto dto = new UserProfileDto(user);
+        userRepository.deleteUserByUserEmail(userEmail);
+        return dto;
+    }
+
 
 
 
