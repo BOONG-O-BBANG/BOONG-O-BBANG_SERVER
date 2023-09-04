@@ -43,7 +43,7 @@ public class UserService {
         userRepository.save(
                 User.builder()
                         .userNaverId(dto.getUserNaverId())
-                        .userName(dto.getUserName())
+                        .username(dto.getUsername())
                         .userNickname(dto.getUserNickname())
                         .userEmail(dto.getUserEmail())
                         .userBirth(dto.getUserBirth())
