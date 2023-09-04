@@ -1,6 +1,7 @@
 package com.project.boongobbang.service;
 
 import com.project.boongobbang.domain.dto.user.UserSignUpDto;
+import com.project.boongobbang.domain.dto.user.UserValidateDto;
 import com.project.boongobbang.domain.entity.User;
 import com.project.boongobbang.enums.Role;
 import com.project.boongobbang.exception.AppException;
@@ -8,7 +9,6 @@ import com.project.boongobbang.exception.ErrorCode;
 import com.project.boongobbang.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -16,6 +16,10 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
+
+    public Boolean validate(UserValidateDto dto) {
+        return userRepository.existsByUserNaverId(dto.getUserNaverId());
+    }
 
     public void signUp(UserSignUpDto dto) {
         userRepository.findByUserNaverId(dto.getUserNaverId()).ifPresent(user -> {
@@ -41,6 +45,6 @@ public class UserService {
                         .userPhotoUrl(dto.getUserPhotoUrl())
                         .role(Role.ROLE_USER)
                         .build());
-
     }
+
 }
