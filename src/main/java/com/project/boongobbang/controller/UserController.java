@@ -2,6 +2,7 @@ package com.project.boongobbang.controller;
 
 
 import com.project.boongobbang.domain.dto.user.UserSignUpDto;
+import com.project.boongobbang.domain.dto.user.UserValidateDto;
 import com.project.boongobbang.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
 
     private final UserService userService;
+
+    @PostMapping("/validate")
+    public ResponseEntity<Boolean> validate(@RequestBody UserValidateDto dto) {
+        return ResponseEntity.ok().body(userService.validate(dto));
+    }
 
     @PostMapping("/signup")
     public ResponseEntity<String> signUp(@RequestBody UserSignUpDto dto) {
