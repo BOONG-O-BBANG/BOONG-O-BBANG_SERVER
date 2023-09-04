@@ -4,7 +4,7 @@ import com.project.boongobbang.domain.dto.token.TokenResponseDto;
 import com.project.boongobbang.domain.dto.user.UserSignInDto;
 import com.project.boongobbang.domain.dto.user.UserSignUpDto;
 import com.project.boongobbang.domain.dto.user.UserValidateDto;
-import com.project.boongobbang.domain.entity.User;
+import com.project.boongobbang.domain.entity.user.User;
 import com.project.boongobbang.enums.Role;
 import com.project.boongobbang.exception.AppException;
 import com.project.boongobbang.exception.ErrorCode;

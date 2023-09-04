@@ -1,6 +1,6 @@
 package com.project.boongobbang.repository.user;
 
-import com.project.boongobbang.domain.entity.User;
+import com.project.boongobbang.domain.entity.user.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

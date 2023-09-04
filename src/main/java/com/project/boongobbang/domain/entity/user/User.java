@@ -1,4 +1,4 @@
-package com.project.boongobbang.domain.entity;
+package com.project.boongobbang.domain.entity.user;
 
 import com.project.boongobbang.enums.*;
 import lombok.*;
@@ -31,9 +31,9 @@ public class User {
     @Column(name = "user_mobile")
     private String userMobile;
 
-    @Enumerated(EnumType.ORDINAL)
+    @Enumerated(EnumType.STRING)
     private Gender userGender;
-    //
+
     @Enumerated(EnumType.ORDINAL)
     private CleanCount userCleanCount;
 
@@ -61,5 +61,11 @@ public class User {
     @Column(name = "user_introduction")
     private String userIntroduction;
 
+    @Column(name = "user_photo")
     private String userPhotoUrl;
+
+    //MAPPING
+    @Embedded
+    UserAverageScore userAverageScore;
+
 }
