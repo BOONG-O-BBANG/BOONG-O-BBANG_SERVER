@@ -1,4 +1,4 @@
-package com.project.boongobbang.repository;
+package com.project.boongobbang.repository.user;
 
 import com.project.boongobbang.domain.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
