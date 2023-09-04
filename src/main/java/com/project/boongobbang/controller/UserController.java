@@ -20,6 +20,7 @@ public class UserController {
     @PostMapping("/signup")
     public ResponseEntity<String> signUp(@RequestBody UserSignUpDto dto) {
         userService.signUp(dto);
-        return ResponseEntity.ok().body("Hello");
+
+        return ResponseEntity.ok().body("회원가입이 되었습니다.");
     }
 }

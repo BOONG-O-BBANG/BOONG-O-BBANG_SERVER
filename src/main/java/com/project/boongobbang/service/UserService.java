@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
 public class UserService {
     private final UserRepository userRepository;
 
-    public ResponseEntity<String> signUp(UserSignUpDto dto) {
+    public void signUp(UserSignUpDto dto) {
         userRepository.findByUserNaverId(dto.getUserNaverId()).ifPresent(user -> {
             throw new AppException(ErrorCode.USER_ALREADY_EXISTS, "이미 존재하는 회원입니다.");
         });
@@ -42,8 +42,5 @@ public class UserService {
                         .role(Role.ROLE_USER)
                         .build());
 
-        return ResponseEntity
-                .ok()
-                .body("회원가입이 성공하였습니다.");
     }
 }
