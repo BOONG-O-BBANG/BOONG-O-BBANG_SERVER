@@ -3,16 +3,26 @@ package com.project.boongobbang.service;
 import com.project.boongobbang.domain.dto.token.TokenResponseDto;
 import com.project.boongobbang.domain.dto.user.UserSignInDto;
 import com.project.boongobbang.domain.dto.user.UserSignUpDto;
+import com.project.boongobbang.domain.dto.user.UserSimpleDto;
 import com.project.boongobbang.domain.dto.user.UserValidateDto;
+import com.project.boongobbang.domain.entity.roommate.Notification;
+import com.project.boongobbang.domain.entity.roommate.Roommate;
 import com.project.boongobbang.domain.entity.user.User;
+import com.project.boongobbang.domain.entity.user.UserScore;
 import com.project.boongobbang.enums.Role;
 import com.project.boongobbang.exception.AppException;
 import com.project.boongobbang.exception.ErrorCode;
 import com.project.boongobbang.jwt.JwtUtils;
 import com.project.boongobbang.repository.redis.RedisRefreshTokenRepository;
+import com.project.boongobbang.repository.roommate.NotificationRepository;
+import com.project.boongobbang.repository.roommate.RoommateRepository;
 import com.project.boongobbang.repository.user.UserRepository;
+import com.project.boongobbang.repository.user.UserScoreRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -20,16 +30,23 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserService {
-    private final UserRepository userRepository;
     private final JwtUtils jwtUtils;
+    private final UserRepository userRepository;
+    private final RoommateRepository roommateRepository;
+    private final UserScoreRepository userScoreRepository;
     private final AuthenticationManager authenticationManager;
+    private final NotificationRepository notificationRepository;
     private final RedisRefreshTokenRepository refreshTokenRepository;
+
 
     public Boolean validate(UserValidateDto dto) {
         return userRepository.existsByUserNaverId(dto.getUserNaverId());
@@ -94,4 +111,66 @@ public class UserService {
         return new TokenResponseDto(accessToken, refreshToken);
     }
 
+
+
+
+
+
+
+    //식별자로 User 검색
+    public User findUserByUserId(String userEmail){
+        User user = userRepository.findUserByUserEmail(userEmail)
+                .orElseThrow(
+                        () ->  new RuntimeException("[Error] 존재하지 않는 유저입니다")
+                );
+        return user;
+    }
+    //식별자로 Notification 검색
+    public Notification findNotificationByNotificationId(Long notificationtId){
+        Notification notification;
+        try{
+            notification = notificationRepository.findNotificationByNotificationId(notificationtId);
+        }catch(RuntimeException e){
+            throw new RuntimeException("[Error] 존재하지 않는 알림입니다.");
+        }
+        return notification;
+    }
+    //식별자로 UserScore 검색
+    public UserScore findUserScoreByUserScoreId(Long userScoreId){
+        UserScore userScore;
+        try{
+            userScore = userScoreRepository.findUserScoreByUserScoreId(userScoreId);
+        }catch(RuntimeException e){
+            throw new RuntimeException("[Error] 존재하지 않는 알림입니다.");
+        }
+        return userScore;
+    }
+    //식별자로 Roommate 검색
+    public Roommate findRoommateByRoommateId(Long roommateId){
+        Roommate roommate;
+        try{
+            roommate = roommateRepository.findRoommateByRoommateId(roommateId);
+        }catch(RuntimeException e){
+            throw new RuntimeException("[Error] 존재하지 않는 룸메이트 관계입니다.");
+        }
+        return roommate;
+    }
+    //구성 User 의 Email 로 Roommate 검색
+    public Roommate findRoommateByUsers(String userEmail1, String userEmail2){
+        Roommate roommate;
+        try{
+            roommate = roommateRepository.findRoommateByUsers(userEmail1, userEmail2);
+        }catch(RuntimeException e){
+            return null;
+        }
+        return roommate;
+    }
+    //전체 User 페이지로 검색
+    public List<UserSimpleDto> getUsersByPage(int pageNumber) {
+        Pageable pageable = PageRequest.of(pageNumber, 10);
+        Page<User> userPage = userRepository.findAll(pageable);
+        return userPage.stream()
+                .map(user -> new UserSimpleDto(user))
+                .collect(Collectors.toList());
+    }
 }
