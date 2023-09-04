@@ -1,6 +1,6 @@
 package com.project.boongobbang.service;
 
-import com.project.boongobbang.domain.entity.User;
+import com.project.boongobbang.domain.entity.user.User;
 import com.project.boongobbang.exception.AppException;
 import com.project.boongobbang.exception.ErrorCode;
 import com.project.boongobbang.repository.user.UserRepository;
