@@ -1,10 +1,13 @@
 package com.project.boongobbang.controller;
 
 
+import com.project.boongobbang.domain.dto.token.TokenResponseDto;
+import com.project.boongobbang.domain.dto.user.UserSignInDto;
 import com.project.boongobbang.domain.dto.user.UserSignUpDto;
 import com.project.boongobbang.domain.dto.user.UserValidateDto;
 import com.project.boongobbang.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -26,7 +29,18 @@ public class UserController {
     @PostMapping("/signup")
     public ResponseEntity<String> signUp(@RequestBody UserSignUpDto dto) {
         userService.signUp(dto);
-
         return ResponseEntity.ok().body("회원가입이 되었습니다.");
+    }
+
+    @PostMapping("/signin")
+    public ResponseEntity<String> signIn(@RequestBody UserSignInDto dto) {
+        System.out.println("This is signIn method");
+        TokenResponseDto tokenResponseDto = userService.signIn(dto);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", "Bearer " + tokenResponseDto.getAccessToken());
+        headers.add("RefreshToken", tokenResponseDto.getRefreshToken());
+
+        return ResponseEntity.ok().headers(headers).body("로그인 성공");
     }
 }
