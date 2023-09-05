@@ -9,8 +9,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 
-import static com.project.boongobbang.enums.UserType.CLEAN_0_1_E_T_SMOKER_NOCTURNAL;
-
 @Getter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @AllArgsConstructor
@@ -65,9 +63,6 @@ public class UserSignUpDto {
     @ApiModelProperty(position = 15, required = true, value = "유저 소개", example = "반갑습니다. 내 이름은 정은기. 활기참.")
     private String userIntroduction;
 
-    @ApiModelProperty(position = 16, required = true, value = "유저 사진 url", example = "")
-    private String userPhotoUrl;
-
 
     public User toEntity(){
         return User.builder()
@@ -90,7 +85,7 @@ public class UserSignUpDto {
                 .userIsNocturnal(userIsNocturnal)
 
                 .userIntroduction(userIntroduction)
-                .userPhotoUrl(userPhotoUrl)
+                .userPhotoUrl("empty")
 
 
                 .ratedCount(0L)
