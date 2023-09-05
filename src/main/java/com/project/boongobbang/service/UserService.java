@@ -148,7 +148,7 @@ public class UserService {
 
     @Transactional
     public User updateUser(String userEmail, UserUpdateRequestDto dto){
-        User user = findUserByUserId(userEmail);
+        User user = findUserByUserEmail(userEmail);
 
         if(!Objects.equals(user.getUserNickname(), dto.getUserNickname())) {
             user.setUserNickname(dto.getUserNickname());
@@ -190,7 +190,7 @@ public class UserService {
     //유저 삭제
     @Transactional
     public UserProfileDto deleteUser(String userEmail){
-        User user = findUserByUserId(userEmail);
+        User user = findUserByUserEmail(userEmail);
         UserProfileDto dto = new UserProfileDto(user);
         userRepository.deleteUserByUserEmail(userEmail);
         return dto;
@@ -211,7 +211,7 @@ public class UserService {
 
 
     //식별자로 User 검색
-    public User findUserByUserId(String userEmail){
+    public User findUserByUserEmail(String userEmail){
         User user = userRepository.findUserByUserEmail(userEmail)
                 .orElseThrow(
                         () ->  new RuntimeException("[Error] 존재하지 않는 유저입니다")
@@ -265,5 +265,33 @@ public class UserService {
         return userPage.stream()
                 .map(user -> new UserSimpleDto(user))
                 .collect(Collectors.toList());
+    }
+
+
+
+    /* DTO 반환 */
+
+    //User(본인) 입력받아 UserProfileDto 반환
+    //무조건 모든 정보를 공개
+    public UserProfileDto returnMyProfileDto(User user){
+        UserProfileDto dto = new UserProfileDto(user);
+        return dto;
+    }
+    //User 입력받아 UserProfileDto 반환
+    public UserProfileDto returnUserProfileDto(User me, User user){
+        //룸메이트라면 userMobile 까지 공개
+        boolean isRoommate = (roommateRepository.findRoommateByUsers(me.getUserEmail(), user.getUserEmail()) == null) ? false : true;
+        UserProfileDto dto = new UserProfileDto(user, isRoommate);
+        return dto;
+    }
+    //User 입력받아 UserSimpleDto 반환
+    public UserSimpleDto returnUserSimpleDto(User user){
+        UserSimpleDto dto = new UserSimpleDto(user);
+        return dto;
+    }
+    //User 입력받아 UserResponseDto 반환
+    public UserResponseDto returnUserDto(User user){
+        UserResponseDto dto = new UserResponseDto(user);
+        return dto;
     }
 }
