@@ -1,7 +1,7 @@
 package com.project.boongobbang.jwt;
 
-import com.project.boongobbang.domain.dto.user.UserSignInDto;
-import com.project.boongobbang.repository.redis.RedisRefreshTokenRepository;
+import com.project.boongobbang.exception.AppException;
+import com.project.boongobbang.exception.ErrorCode;
 import com.project.boongobbang.service.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,17 +26,16 @@ import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 @Component
 @RequiredArgsConstructor
 public class JwtAuthFilter extends OncePerRequestFilter {
-    private final RedisRefreshTokenRepository refreshTokenRepository;
     private final CustomUserDetailsService customUserDetailsService;
     private final JwtUtils jwtUtils;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         final String authHeader = request.getHeader(AUTHORIZATION);
-        final String refreshToken = request.getHeader("RefreshToken");
         final String userNaverId;
         final String accessToken;
 
+        //accessToken이 null일 때
         if (authHeader == null || !authHeader.startsWith("Bearer")) {
             filterChain.doFilter(request, response);
             return;
@@ -48,38 +47,17 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             userNaverId = jwtUtils.extractUsername(accessToken);
             UserDetails userDetails = customUserDetailsService.loadUserByUsername(userNaverId);
 
-            UserSignInDto dto = UserSignInDto.builder()
-                    .userNaverId(userNaverId)
-                    .build();
-
-            refreshTokenRepository.saveRefreshToken(userNaverId, refreshToken);
-
             RequestContextHolder.currentRequestAttributes()
                     .setAttribute(AUTHORIZATION, accessToken, RequestAttributes.SCOPE_REQUEST);
 
             UsernamePasswordAuthenticationToken authenticationToken =
-                    new UsernamePasswordAuthenticationToken(userDetails, dto, userDetails.getAuthorities());
+                    new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
             authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(authenticationToken);
 
             filterChain.doFilter(request, response);
-            return;
+        } else {
+            throw new AppException(ErrorCode.EXPIRED_TOKEN, "access token이 만료되었습니다.");
         }
-
-        if (jwtUtils.isTokenValid(refreshToken)) {
-            RequestContextHolder.currentRequestAttributes()
-                    .setAttribute(AUTHORIZATION, null, RequestAttributes.SCOPE_REQUEST);
-            RequestContextHolder.currentRequestAttributes()
-                    .setAttribute("RefreshToken", refreshToken, RequestAttributes.SCOPE_REQUEST);
-
-            filterChain.doFilter(request, response);
-            return;
-        }
-
-        RequestContextHolder.currentRequestAttributes()
-                .setAttribute(AUTHORIZATION, null, RequestAttributes.SCOPE_REQUEST);
-        RequestContextHolder.currentRequestAttributes()
-                .setAttribute("RefreshToken", null, RequestAttributes.SCOPE_REQUEST);
-        filterChain.doFilter(request, response);
     }
 }
