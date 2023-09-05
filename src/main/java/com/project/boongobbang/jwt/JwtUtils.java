@@ -1,10 +1,6 @@
 package com.project.boongobbang.jwt;
 
-import com.project.boongobbang.repository.redis.RedisRefreshTokenRepository;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jws;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,8 +14,6 @@ import java.util.function.Function;
 @Component
 @RequiredArgsConstructor
 public class JwtUtils {
-    private final RedisRefreshTokenRepository refreshTokenRepository;
-
     @Value("${jwt.secret}")
     private String secretKey;
 
@@ -40,26 +34,27 @@ public class JwtUtils {
         return new ArrayList<>(claims.keySet());
     }
 
-    public Date extractExpiration(String token) {
-        return extractClaim(token, Claims::getExpiration);
-    }
-
     public boolean hasClaim(String token, String claimName) {
         final Claims claims = extractAllClaims(token);
         return claims.get(claimName) != null;
     }
 
     private <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
-        final Claims claims = extractAllClaims(token);
-        return claimsResolver.apply(claims);
+        try {
+            final Claims claims = extractAllClaims(token);
+            return claimsResolver.apply(claims);
+        } catch (NullPointerException e) {
+            return null;
+        }
     }
 
     private Claims extractAllClaims(String token) {
-        return Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody();
-    }
-
-    private Boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(new Date());
+        try {
+            log.info("Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody() {}",Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody() );
+            return Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody();
+        } catch (ExpiredJwtException e) {
+            return null;
+        }
     }
 
     public String generateToken(UserDetails userDetails) {
@@ -91,12 +86,11 @@ public class JwtUtils {
                 .compact();
     }
 
-    public Boolean isTokenValid(String token, UserDetails userDetails) {
-        final String username = extractUsername(token);
-        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
-    }
-
-    public boolean isRefreshTokenValid(String refreshToken) {
-        return !isTokenExpired(refreshToken);
+    public Boolean isTokenValid(String token) {
+        try {
+            return extractAllClaims(token).getExpiration().after(new Date());
+        } catch (Exception e) {
+            return false;
+        }
     }
 }

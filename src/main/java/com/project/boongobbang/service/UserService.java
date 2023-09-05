@@ -78,8 +78,6 @@ public class UserService {
                         .userPhotoUrl(dto.getUserPhotoUrl())
                         .role(Role.ROLE_USER)
                         .build());
-
-
     }
 
     //유저 생성/수정 시 UserType 설정
@@ -117,67 +115,61 @@ public class UserService {
                 .currentRequestAttributes()
                 .getAttribute(AUTHORIZATION, RequestAttributes.SCOPE_REQUEST);
 
-        String refreshToken = (String) RequestContextHolder
-                .currentRequestAttributes()
-                .getAttribute("RefreshHeader", RequestAttributes.SCOPE_REQUEST);
-
         UserDetails user = (UserDetails) authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(dto.getUserNaverId(), dto.getUserEmail())
         ).getPrincipal();
 
-        if (accessToken == null && refreshToken == null) {
-            if (user != null) {
-                return createTokens(user);
+        String refreshToken = refreshTokenRepository.findRefreshToken(user.getUsername());
+
+        //access token과 refresh token이 둘 다 유효한 경우는 jwtAuthFilter에서 이미 걸려서 처리되었음.
+        if (user != null) {
+            //access token이 유효하지 않고 refresh token이 존재하는 경우
+            if (refreshToken != null) {
+                if (accessToken != null) {
+                    return new TokenResponseDto(accessToken, refreshToken);
+                }
+
+                if (jwtUtils.isTokenValid(refreshToken)) {
+                    return new TokenResponseDto(jwtUtils.generateToken(user), refreshToken);
+                }
             }
-            throw new AppException(ErrorCode.USER_ID_NOT_FOUND, "유저를 찾을 수 없습니다.");
+            return new TokenResponseDto(jwtUtils.generateToken(user), jwtUtils.createRefreshToken());
         }
-
-        return new TokenResponseDto(accessToken, refreshToken);
+        throw new AppException(ErrorCode.INVALID_TOKEN, "유저를 찾을 수 없습니다.");
     }
-
-    private TokenResponseDto createTokens(UserDetails user) {
-
-        String accessToken = jwtUtils.generateToken(user);
-        String refreshToken = jwtUtils.createRefreshToken();
-
-        refreshTokenRepository.saveRefreshToken(accessToken, refreshToken);
-
-        return new TokenResponseDto(accessToken, refreshToken);
-    }
-
 
     @Transactional
-    public User updateUser(String userEmail, UserUpdateRequestDto dto){
+    public User updateUser(String userEmail, UserUpdateRequestDto dto) {
         User user = findUserByUserEmail(userEmail);
 
-        if(!Objects.equals(user.getUserNickname(), dto.getUserNickname())) {
+        if (!Objects.equals(user.getUserNickname(), dto.getUserNickname())) {
             user.setUserNickname(dto.getUserNickname());
         }
-        if(!Objects.equals(user.getUserCleanCount(), dto.getUserCleanCount())) {
+        if (!Objects.equals(user.getUserCleanCount(), dto.getUserCleanCount())) {
             user.setUserCleanCount(dto.getUserCleanCount());
         }
-        if(!Objects.equals(user.getUserLocation(), dto.getUserLocation())) {
+        if (!Objects.equals(user.getUserLocation(), dto.getUserLocation())) {
             user.setUserLocation(dto.getUserLocation());
         }
-        if(!Objects.equals(user.getUserMBTI(), dto.getUserMbti())) {
+        if (!Objects.equals(user.getUserMBTI(), dto.getUserMbti())) {
             user.setUserMBTI(dto.getUserMbti());
         }
-        if(!Objects.equals(user.getUserHasPet(), dto.getUserHasPet())) {
+        if (!Objects.equals(user.getUserHasPet(), dto.getUserHasPet())) {
             user.setUserHasPet(dto.getUserHasPet());
         }
-        if(!Objects.equals(user.getUserHasExperience(), dto.getUserHasExperience())) {
+        if (!Objects.equals(user.getUserHasExperience(), dto.getUserHasExperience())) {
             user.setUserHasExperience(dto.getUserHasExperience());
         }
-        if(!Objects.equals(user.getUserIsSmoker(), dto.getUserIsSmoker())) {
+        if (!Objects.equals(user.getUserIsSmoker(), dto.getUserIsSmoker())) {
             user.setUserIsSmoker(dto.getUserIsSmoker());
         }
-        if(!Objects.equals(user.getUserIsNocturnal(), dto.getUserIsNocturnal())) {
+        if (!Objects.equals(user.getUserIsNocturnal(), dto.getUserIsNocturnal())) {
             user.setUserIsNocturnal(dto.getUserIsNocturnal());
         }
-        if(!Objects.equals(user.getUserIntroduction(), dto.getUserIntroduction())) {
+        if (!Objects.equals(user.getUserIntroduction(), dto.getUserIntroduction())) {
             user.setUserIntroduction(dto.getUserIntroduction());
         }
-        if(!Objects.equals(user.getUserPhotoUrl(), dto.getUserPhotoUrl())) {
+        if (!Objects.equals(user.getUserPhotoUrl(), dto.getUserPhotoUrl())) {
             user.setUserPhotoUrl(dto.getUserPhotoUrl());
         }
 
@@ -189,7 +181,7 @@ public class UserService {
 
     //유저 삭제
     @Transactional
-    public UserProfileDto deleteUser(String userEmail){
+    public UserProfileDto deleteUser(String userEmail) {
         User user = findUserByUserEmail(userEmail);
         UserProfileDto dto = new UserProfileDto(user);
         userRepository.deleteUserByUserEmail(userEmail);
@@ -197,67 +189,59 @@ public class UserService {
     }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
     //식별자로 User 검색
-    public User findUserByUserEmail(String userEmail){
+    public User findUserByUserEmail(String userEmail) {
         User user = userRepository.findUserByUserEmail(userEmail)
                 .orElseThrow(
-                        () ->  new RuntimeException("[Error] 존재하지 않는 유저입니다")
+                        () -> new RuntimeException("[Error] 존재하지 않는 유저입니다")
                 );
         return user;
     }
+
     //식별자로 Notification 검색
-    public Notification findNotificationByNotificationId(Long notificationtId){
+    public Notification findNotificationByNotificationId(Long notificationtId) {
         Notification notification;
-        try{
+        try {
             notification = notificationRepository.findNotificationByNotificationId(notificationtId);
-        }catch(RuntimeException e){
+        } catch (RuntimeException e) {
             throw new RuntimeException("[Error] 존재하지 않는 알림입니다.");
         }
         return notification;
     }
+
     //식별자로 UserScore 검색
-    public UserScore findUserScoreByUserScoreId(Long userScoreId){
+    public UserScore findUserScoreByUserScoreId(Long userScoreId) {
         UserScore userScore;
-        try{
+        try {
             userScore = userScoreRepository.findUserScoreByUserScoreId(userScoreId);
-        }catch(RuntimeException e){
+        } catch (RuntimeException e) {
             throw new RuntimeException("[Error] 존재하지 않는 알림입니다.");
         }
         return userScore;
     }
+
     //식별자로 Roommate 검색
-    public Roommate findRoommateByRoommateId(Long roommateId){
+    public Roommate findRoommateByRoommateId(Long roommateId) {
         Roommate roommate;
-        try{
+        try {
             roommate = roommateRepository.findRoommateByRoommateId(roommateId);
-        }catch(RuntimeException e){
+        } catch (RuntimeException e) {
             throw new RuntimeException("[Error] 존재하지 않는 룸메이트 관계입니다.");
         }
         return roommate;
     }
+
     //구성 User 의 Email 로 Roommate 검색
-    public Roommate findRoommateByUsers(String userEmail1, String userEmail2){
+    public Roommate findRoommateByUsers(String userEmail1, String userEmail2) {
         Roommate roommate;
-        try{
+        try {
             roommate = roommateRepository.findRoommateByUsers(userEmail1, userEmail2);
-        }catch(RuntimeException e){
+        } catch (RuntimeException e) {
             return null;
         }
         return roommate;
     }
+
     //전체 User 페이지로 검색
     public List<UserSimpleDto> getUsersByPage(int pageNumber) {
         Pageable pageable = PageRequest.of(pageNumber, 10);
@@ -273,24 +257,27 @@ public class UserService {
 
     //User(본인) 입력받아 UserProfileDto 반환
     //무조건 모든 정보를 공개
-    public UserProfileDto returnMyProfileDto(User user){
+    public UserProfileDto returnMyProfileDto(User user) {
         UserProfileDto dto = new UserProfileDto(user);
         return dto;
     }
+
     //User 입력받아 UserProfileDto 반환
-    public UserProfileDto returnUserProfileDto(User me, User user){
+    public UserProfileDto returnUserProfileDto(User me, User user) {
         //룸메이트라면 userMobile 까지 공개
         boolean isRoommate = (roommateRepository.findRoommateByUsers(me.getUserEmail(), user.getUserEmail()) == null) ? false : true;
         UserProfileDto dto = new UserProfileDto(user, isRoommate);
         return dto;
     }
+
     //User 입력받아 UserSimpleDto 반환
-    public UserSimpleDto returnUserSimpleDto(User user){
+    public UserSimpleDto returnUserSimpleDto(User user) {
         UserSimpleDto dto = new UserSimpleDto(user);
         return dto;
     }
+
     //User 입력받아 UserResponseDto 반환
-    public UserResponseDto returnUserDto(User user){
+    public UserResponseDto returnUserDto(User user) {
         UserResponseDto dto = new UserResponseDto(user);
         return dto;
     }
