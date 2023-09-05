@@ -43,40 +43,45 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         }
 
         accessToken = authHeader.substring(7);
-        userNaverId = jwtUtils.extractUsername(accessToken);
-        UserDetails userDetails = customUserDetailsService.loadUserByUsername(userNaverId);
 
-        //accessToken이 유효한 경우
-        if (jwtUtils.isTokenValid(accessToken, userDetails)) {
+        if (jwtUtils.isTokenValid(accessToken)) {
+            userNaverId = jwtUtils.extractUsername(accessToken);
+            UserDetails userDetails = customUserDetailsService.loadUserByUsername(userNaverId);
+
             UserSignInDto dto = UserSignInDto.builder()
                     .userNaverId(userNaverId)
                     .build();
 
-            refreshTokenRepository.saveRefreshToken(accessToken, refreshToken);
+            refreshTokenRepository.saveRefreshToken(userNaverId, refreshToken);
 
             RequestContextHolder.currentRequestAttributes()
                     .setAttribute(AUTHORIZATION, accessToken, RequestAttributes.SCOPE_REQUEST);
             RequestContextHolder.currentRequestAttributes()
-                    .setAttribute("RefreshHeader", refreshToken, RequestAttributes.SCOPE_REQUEST);
+                    .setAttribute("RefreshToken", refreshToken, RequestAttributes.SCOPE_REQUEST);
 
             UsernamePasswordAuthenticationToken authenticationToken =
                     new UsernamePasswordAuthenticationToken(userDetails, dto, userDetails.getAuthorities());
             authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-        } else {
-            String findRefreshToken = refreshTokenRepository.findRefreshToken(userNaverId);
-            if (jwtUtils.isRefreshTokenValid(findRefreshToken)) {
 
-                String newAccessToken = jwtUtils.generateToken(userDetails);
-
-                RequestContextHolder.currentRequestAttributes()
-                        .setAttribute(AUTHORIZATION, newAccessToken, RequestAttributes.SCOPE_REQUEST);
-                RequestContextHolder.currentRequestAttributes()
-                        .setAttribute("RefreshHeader", findRefreshToken, RequestAttributes.SCOPE_REQUEST);
-
-                refreshTokenRepository.saveRefreshToken(userNaverId, findRefreshToken);
-            }
+            filterChain.doFilter(request, response);
+            return;
         }
+
+        if (jwtUtils.isTokenValid(refreshToken)) {
+            RequestContextHolder.currentRequestAttributes()
+                    .setAttribute(AUTHORIZATION, null, RequestAttributes.SCOPE_REQUEST);
+            RequestContextHolder.currentRequestAttributes()
+                    .setAttribute("RefreshToken", refreshToken, RequestAttributes.SCOPE_REQUEST);
+
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        RequestContextHolder.currentRequestAttributes()
+                .setAttribute(AUTHORIZATION, null, RequestAttributes.SCOPE_REQUEST);
+        RequestContextHolder.currentRequestAttributes()
+                .setAttribute("RefreshToken", null, RequestAttributes.SCOPE_REQUEST);
         filterChain.doFilter(request, response);
     }
 }
