@@ -4,6 +4,7 @@ package com.project.boongobbang.controller;
 import com.project.boongobbang.domain.dto.token.TokenResponseDto;
 import com.project.boongobbang.domain.dto.user.*;
 import com.project.boongobbang.domain.entity.user.User;
+import com.project.boongobbang.jwt.JwtUtils;
 import com.project.boongobbang.service.UserService;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -12,10 +13,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+
 
 @RestController
 @RequestMapping("/users")
@@ -23,12 +24,6 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
-
-
-    @PostMapping("/validate")
-    public ResponseEntity<Boolean> validate(@RequestBody UserValidateDto dto) {
-        return ResponseEntity.ok().body(userService.validate(dto));
-    }
 
     @ApiOperation("유저 회원가입")
     @ApiResponses(value={
@@ -72,16 +67,6 @@ public class UserController {
         return ResponseEntity.ok().headers(headers).body("로그인 성공");
     }
 
-    @PostMapping("/reissue")
-    public ResponseEntity<String> reIssue(@RequestBody ReIssueDto dto) {
-        TokenResponseDto tokenResponseDto = userService.reissue(dto);
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization", "Bearer " + tokenResponseDto.getAccessToken());
-
-        return ResponseEntity.ok().headers(headers).body("재발행 성공");
-    }
-
     @ApiOperation("유저 상세 조회")
     @ApiResponses(value={
             @ApiResponse(code = 200,
@@ -96,9 +81,10 @@ public class UserController {
     })
     @ResponseStatus(HttpStatus.OK)
     @GetMapping("/detail")
-    public ResponseEntity<UserResponseDto> getUserDetail(
-            @AuthenticationPrincipal User loginUser) {
-        User user = userService.findUserByUserEmail(loginUser.getUserEmail());
+    public ResponseEntity<UserResponseDto> getUserDetail() {
+        String userNaverId = userService.getLoginUserInfo();
+        User user = userService.findUserByUserNaverId(userNaverId);
+
         UserResponseDto userResponseDto = userService.returnUserDto(user);
         return new ResponseEntity<>(userResponseDto, HttpStatus.OK);
     }
@@ -117,9 +103,10 @@ public class UserController {
     })
     @ResponseStatus(HttpStatus.OK)
     @GetMapping("/profile")
-    public ResponseEntity<UserProfileDto> getMyProfile(
-            @AuthenticationPrincipal User loginUser) {
-        User user = userService.findUserByUserEmail(loginUser.getUserEmail());
+    public ResponseEntity<UserProfileDto> getMyProfile() {
+        String userNaverId = userService.getLoginUserInfo();
+        User user = userService.findUserByUserNaverId(userNaverId);
+
         UserProfileDto userProfileDto = userService.returnMyProfileDto(user);
         return new ResponseEntity<>(userProfileDto, HttpStatus.CREATED);
     }
@@ -159,9 +146,10 @@ public class UserController {
     @ResponseStatus(HttpStatus.OK)
     @PatchMapping
     public ResponseEntity<UserResponseDto> updateUser(
-            @AuthenticationPrincipal User loginUser,
             @RequestBody UserUpdateRequestDto dto) {
-        User user = userService.updateUser(loginUser.getUserEmail(), dto);
+        String userNaverId = userService.getLoginUserInfo();
+        User user = userService.findUserByUserNaverId(userNaverId);
+
         UserResponseDto userResponseDto = userService.returnUserDto(user);
         return new ResponseEntity<>(userResponseDto, HttpStatus.OK);
     }
@@ -180,9 +168,34 @@ public class UserController {
     })
     @ResponseStatus(HttpStatus.OK)
     @DeleteMapping
-    public ResponseEntity<UserProfileDto> deleteUser(
-            @AuthenticationPrincipal User loginUser) {
-        UserProfileDto userProfileDto = userService.deleteUser(loginUser.getUserEmail());
+    public ResponseEntity<UserProfileDto> deleteUser() {
+        String userNaverId = userService.getLoginUserInfo();
+        User user = userService.findUserByUserNaverId(userNaverId);
+
+        UserProfileDto userProfileDto = userService.deleteUser(user.getUserEmail());
         return new ResponseEntity<>(userProfileDto, HttpStatus.OK);
+    }
+
+
+
+
+
+
+
+
+
+    @PostMapping("/validate")
+    public ResponseEntity<Boolean> validate(@RequestBody UserValidateDto dto) {
+        return ResponseEntity.ok().body(userService.validate(dto));
+    }
+
+    @PostMapping("/reissue")
+    public ResponseEntity<String> reIssue(@RequestBody ReIssueDto dto) {
+        TokenResponseDto tokenResponseDto = userService.reissue(dto);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", "Bearer " + tokenResponseDto.getAccessToken());
+
+        return ResponseEntity.ok().headers(headers).body("재발행 성공");
     }
 }

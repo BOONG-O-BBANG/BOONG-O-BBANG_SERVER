@@ -35,6 +35,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.project.boongobbang.enums.CleanCount.*;
+import static com.project.boongobbang.enums.UserType.CLEAN_0_1_E_T_SMOKER_NOCTURNAL;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
 @Slf4j
@@ -52,6 +53,14 @@ public class UserService {
 
     public Boolean validate(UserValidateDto dto) {
         return userRepository.existsByUserNaverId(dto.getUserNaverId());
+    }
+
+    public String getLoginUserInfo(){
+        return jwtUtils.extractUsername(
+                (String) RequestContextHolder
+                .currentRequestAttributes()
+                .getAttribute(AUTHORIZATION, RequestAttributes.SCOPE_REQUEST)
+        );
     }
 
     public void signUp(UserSignUpDto dto) {
@@ -77,6 +86,7 @@ public class UserService {
                         .userIntroduction(dto.getUserIntroduction())
                         .userPhotoUrl(dto.getUserPhotoUrl())
                         .role(Role.ROLE_USER)
+                        .userType(CLEAN_0_1_E_T_SMOKER_NOCTURNAL) //임시
                         .build());
     }
 
@@ -192,6 +202,15 @@ public class UserService {
         return user;
     }
 
+    //네이버 ID 로 User 검색
+    public User findUserByUserNaverId(String userNaverId){
+        User user = userRepository.findUserByUserNaverId(userNaverId)
+                .orElseThrow(
+                        () -> new RuntimeException("[Error] 존재하지 않는 유저입니다")
+                );
+        return user;
+    }
+
     //식별자로 Notification 검색
     public Notification findNotificationByNotificationId(Long notificationtId) {
         Notification notification;
@@ -276,6 +295,13 @@ public class UserService {
         return dto;
     }
 
+
+
+
+
+
+
+    //
     public TokenResponseDto reissue(ReIssueDto dto) {
         String findRefreshToken = refreshTokenRepository.findRefreshToken(dto.getUserNaverId());
 
