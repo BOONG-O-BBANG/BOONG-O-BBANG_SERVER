@@ -116,26 +116,20 @@ public class UserService {
                 .getAttribute(AUTHORIZATION, RequestAttributes.SCOPE_REQUEST);
 
         UserDetails user = (UserDetails) authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(dto.getUserNaverId(), dto.getUserEmail())
+                new UsernamePasswordAuthenticationToken(dto.getUserNaverId(), "")
         ).getPrincipal();
 
-        String refreshToken = refreshTokenRepository.findRefreshToken(user.getUsername());
-
-        //access token과 refresh token이 둘 다 유효한 경우는 jwtAuthFilter에서 이미 걸려서 처리되었음.
-        if (user != null) {
-            //access token이 유효하지 않고 refresh token이 존재하는 경우
-            if (refreshToken != null) {
-                if (accessToken != null) {
-                    return new TokenResponseDto(accessToken, refreshToken);
-                }
-
-                if (jwtUtils.isTokenValid(refreshToken)) {
-                    return new TokenResponseDto(jwtUtils.generateToken(user), refreshToken);
-                }
-            }
-            return new TokenResponseDto(jwtUtils.generateToken(user), jwtUtils.createRefreshToken());
+        if (user == null) {
+            throw new AppException(ErrorCode.USER_NOT_FOUND, "[Error] 유저 존재하지 않습니다");
         }
-        throw new AppException(ErrorCode.INVALID_TOKEN, "유저를 찾을 수 없습니다.");
+
+        //INVALID는 처리된 이후. 즉, 유효성 검증을 끝낸 유효한 access token이다.
+        if (accessToken != null) {
+            return new TokenResponseDto(accessToken);
+        }
+        refreshTokenRepository.saveRefreshToken(user.getUsername(), jwtUtils.createRefreshToken());
+
+        return new TokenResponseDto(jwtUtils.generateToken(user));
     }
 
     @Transactional
