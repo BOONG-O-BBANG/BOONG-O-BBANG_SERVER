@@ -9,6 +9,8 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 
+import static com.project.boongobbang.enums.UserType.CLEAN_0_1_E_T_SMOKER_NOCTURNAL;
+
 @Getter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @AllArgsConstructor
@@ -100,7 +102,7 @@ public class UserSignUpDto {
                 .gaveScoreList(new ArrayList<>())
                 .receivedScoreList(new ArrayList<>())
 
-                .userType(null)
+                .userType(CLEAN_0_1_E_T_SMOKER_NOCTURNAL)
                 .isPaired(false)
                 .build();
     }

@@ -54,6 +54,14 @@ public class UserService {
         return userRepository.existsByUserNaverId(dto.getUserNaverId());
     }
 
+    public String getLoginUserInfo(){
+        return jwtUtils.extractUsername(
+                (String) RequestContextHolder
+                .currentRequestAttributes()
+                .getAttribute(AUTHORIZATION, RequestAttributes.SCOPE_REQUEST)
+        );
+    }
+
     public void signUp(UserSignUpDto dto) {
         userRepository.findByUserNaverId(dto.getUserNaverId()).ifPresent(user -> {
             throw new AppException(ErrorCode.USER_ALREADY_EXISTS, "이미 존재하는 회원입니다.");
@@ -192,6 +200,15 @@ public class UserService {
         return user;
     }
 
+    //네이버 ID 로 User 검색
+    public User findUserByUserNaverId(String userNaverId){
+        User user = userRepository.findUserByUserNaverId(userNaverId)
+                .orElseThrow(
+                        () -> new RuntimeException("[Error] 존재하지 않는 유저입니다")
+                );
+        return user;
+    }
+
     //식별자로 Notification 검색
     public Notification findNotificationByNotificationId(Long notificationtId) {
         Notification notification;
@@ -276,6 +293,13 @@ public class UserService {
         return dto;
     }
 
+
+
+
+
+
+
+    //
     public TokenResponseDto reissue(ReIssueDto dto) {
         String findRefreshToken = refreshTokenRepository.findRefreshToken(dto.getUserNaverId());
 
