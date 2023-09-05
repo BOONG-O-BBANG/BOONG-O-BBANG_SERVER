@@ -10,7 +10,9 @@ import com.project.boongobbang.domain.entity.roommate.Notification;
 import com.project.boongobbang.domain.entity.roommate.Roommate;
 import com.project.boongobbang.domain.entity.user.User;
 import com.project.boongobbang.domain.entity.user.UserScore;
+import com.project.boongobbang.enums.NotificationType;
 import com.project.boongobbang.enums.Role;
+import com.project.boongobbang.enums.UserType;
 import com.project.boongobbang.exception.AppException;
 import com.project.boongobbang.exception.ErrorCode;
 import com.project.boongobbang.jwt.JwtUtils;
@@ -37,10 +39,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -428,6 +427,100 @@ public class UserService {
 
 
 
+
+
+
+
+    //룸메이트 관련
+
+    //룸메이트 요청 전송
+    public Notification sendRoommateRequest(String senderUserEmail, String receiverUserEmail) {
+
+        User senderUser = findUserByUserEmail(senderUserEmail);
+        User receiverUser = findUserByUserEmail(receiverUserEmail);
+
+        //receiverUser 에게 요청 수신 알림 생성
+        StringBuilder requestMessage = new StringBuilder()
+                .append(senderUser.getUserNickname())
+                .append(" 님으로부터 룸메이트 신청을 받았습니다.");
+        Notification notification = Notification.builder()
+                .checkUser(receiverUser)
+                .relatedUser(senderUser)
+                .notificationType(NotificationType.REQUEST)
+                .message(requestMessage.toString())
+                .build();
+        return notificationRepository.save(notification);
+    }
+    //존재하는 알림인지 확인
+    public boolean validateIsExistingNotification(String senderUserEmail, String receiverUserEmail){
+        User senderUser = findUserByUserEmail(senderUserEmail);
+        User receiverUser = findUserByUserEmail(receiverUserEmail);
+
+        return notificationRepository.existsByCheckUserAndRelatedUser(receiverUser, senderUser, NotificationType.REQUEST);
+    }
+    //요청 송/수신자가 이미 룸메이트가 있는지 확인
+    public boolean validateIsPaired(String senderUserEmail, String receiverEmail){
+        return (findUserByUserEmail(senderUserEmail).isPaired() || findUserByUserEmail(receiverEmail).isPaired());
+    }
+    public boolean validateIsPaired2(Notification notification){
+        return notification.getRelatedUser().isPaired();
+    }
+
+    //룸메이트 요청 수락
+    @Transactional
+    public Roommate acceptRoommateRequest(Long notificationId) {
+        Notification notification = findNotificationByNotificationId(notificationId);
+
+        User user1 = notification.getCheckUser();
+        user1.setIsPaired(true);
+        User user2 = notification.getRelatedUser();
+        user2.setIsPaired(true);
+        userRepository.save(user1);
+        userRepository.save(user2);
+
+        //해당 알림 삭제
+        log.info("해당 알림 삭제");
+        deleteNotification(notificationId);
+
+        //룸메이트 관계 생성
+        log.info("룸메이트 관계 생성");
+        Roommate roommate = Roommate.builder()
+                .user1(user1)
+                .user2(user2)
+                .build();
+        roommate.start();
+        Roommate newRoommate = roommateRepository.save(roommate);
+
+        //user1 과 user2에게 룸메이트 성사 알림 생성
+        log.info("user1 과 user2에게 룸메이트 성사 알림 생성");
+        String baseNotificationMessage = " 님과 룸메이트가 되었습니다.";
+        Notification baseNotification = Notification.builder()
+                .notificationType(NotificationType.ROOMMATE)
+                .build();
+
+        log.info("notification1");
+        Notification notification1 = baseNotification.toBuilder()
+                .checkUser(user1)
+                .relatedUser(user2)
+                .message(user2.getUserNickname() + baseNotificationMessage)
+                .build();
+        notificationRepository.save(notification1);
+        log.info("notification2");
+        Notification notification2 = baseNotification.toBuilder()
+                .checkUser(user2)
+                .relatedUser(user1)
+                .message(user1.getUserNickname() + baseNotificationMessage)
+                .build();
+        notificationRepository.save(notification2);
+
+        return newRoommate;
+    }
+
+    //룸메이트 신청 거절, 알림 삭제
+    @Transactional
+    public void deleteNotification(Long notificationId) {
+        notificationRepository.deleteNotificationByNotificationId(notificationId);
+    }
 
 
 
