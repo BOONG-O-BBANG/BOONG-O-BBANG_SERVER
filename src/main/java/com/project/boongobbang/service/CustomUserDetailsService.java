@@ -25,14 +25,14 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String userNaverId) {
         User user = userRepository.findByUserNaverId(userNaverId)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_ID_NOT_FOUND, "유저를 찾을 수 없습니다."));
+                .orElseThrow(() -> new AppException(ErrorCode.USER_ID_NOT_FOUND, "[Error] 유저를 찾을 수 없습니다."));
 
         Collection<SimpleGrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority(user.getRole().toString()));
 
         return new org.springframework.security.core.userdetails.User(
                 user.getUserNaverId(),
-                user.getUserEmail(),
+                "",
                 authorities
         );
     }
