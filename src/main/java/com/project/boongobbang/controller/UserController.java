@@ -6,6 +6,7 @@ import com.project.boongobbang.domain.dto.user.*;
 import com.project.boongobbang.domain.entity.user.User;
 import com.project.boongobbang.jwt.JwtUtils;
 import com.project.boongobbang.service.UserService;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
@@ -13,7 +14,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.util.List;
 
 
+@Api(tags = "유저 API")
 @RestController
 @RequestMapping("/users")
 @RequiredArgsConstructor
