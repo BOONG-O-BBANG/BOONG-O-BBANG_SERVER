@@ -3,15 +3,16 @@ package com.project.boongobbang.domain.dto.user;
 import com.project.boongobbang.domain.entity.user.User;
 import com.project.boongobbang.enums.*;
 import io.swagger.annotations.ApiModelProperty;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 
 @Getter
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 @AllArgsConstructor
+@Builder
 public class UserSignUpDto {
 
     @ApiModelProperty(position = 1, required = true, value = "유저 네이버 아이디", example = "eunki96")
