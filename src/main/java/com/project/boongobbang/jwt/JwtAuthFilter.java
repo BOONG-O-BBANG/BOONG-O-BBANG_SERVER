@@ -56,8 +56,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
             RequestContextHolder.currentRequestAttributes()
                     .setAttribute(AUTHORIZATION, accessToken, RequestAttributes.SCOPE_REQUEST);
-            RequestContextHolder.currentRequestAttributes()
-                    .setAttribute("RefreshToken", refreshToken, RequestAttributes.SCOPE_REQUEST);
 
             UsernamePasswordAuthenticationToken authenticationToken =
                     new UsernamePasswordAuthenticationToken(userDetails, dto, userDetails.getAuthorities());
