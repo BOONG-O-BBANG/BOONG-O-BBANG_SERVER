@@ -64,12 +64,10 @@ public class UserController {
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/signin")
     public ResponseEntity<String> signIn(@RequestBody UserSignInDto dto) {
-        System.out.println("This is signIn method");
         TokenResponseDto tokenResponseDto = userService.signIn(dto);
 
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", "Bearer " + tokenResponseDto.getAccessToken());
-        headers.add("RefreshToken", tokenResponseDto.getRefreshToken());
 
         return ResponseEntity.ok().headers(headers).body("로그인 성공");
     }
