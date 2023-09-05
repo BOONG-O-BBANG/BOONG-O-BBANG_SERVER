@@ -102,7 +102,7 @@ public class UserSignUpDto {
                 .gaveScoreList(new ArrayList<>())
                 .receivedScoreList(new ArrayList<>())
 
-                .userType(CLEAN_0_1_E_T_SMOKER_NOCTURNAL)
+                .userType(null)
                 .isPaired(false)
                 .build();
     }

@@ -35,6 +35,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.project.boongobbang.enums.CleanCount.*;
+import static com.project.boongobbang.enums.UserType.CLEAN_0_1_E_T_SMOKER_NOCTURNAL;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
 @Slf4j
@@ -85,6 +86,7 @@ public class UserService {
                         .userIntroduction(dto.getUserIntroduction())
                         .userPhotoUrl(dto.getUserPhotoUrl())
                         .role(Role.ROLE_USER)
+                        .userType(CLEAN_0_1_E_T_SMOKER_NOCTURNAL) //임시
                         .build());
     }
 
