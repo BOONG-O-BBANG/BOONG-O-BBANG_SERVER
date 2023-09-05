@@ -275,4 +275,23 @@ public class UserService {
         UserResponseDto dto = new UserResponseDto(user);
         return dto;
     }
+
+    public TokenResponseDto reissue(ReIssueDto dto) {
+        String findRefreshToken = refreshTokenRepository.findRefreshToken(dto.getUserNaverId());
+
+        if (findRefreshToken == null) {
+            throw new AppException(ErrorCode.USER_ID_NOT_FOUND, "[Error] 재발행이 불가합니다.");
+        }
+
+        if (jwtUtils.isTokenValid(findRefreshToken)) {
+            UserDetails user = (UserDetails) authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(dto.getUserNaverId(), "")
+            ).getPrincipal();
+
+            return new TokenResponseDto(jwtUtils.generateToken(user));
+        }else {
+            throw new AppException(ErrorCode.EXPIRED_TOKEN, "[Error] 재로그인 하십시오.");
+        }
+
+    }
 }

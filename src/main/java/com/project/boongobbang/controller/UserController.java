@@ -72,6 +72,16 @@ public class UserController {
         return ResponseEntity.ok().headers(headers).body("로그인 성공");
     }
 
+    @PostMapping("/reissue")
+    public ResponseEntity<String> reIssue(@RequestBody ReIssueDto dto) {
+        TokenResponseDto tokenResponseDto = userService.reissue(dto);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", "Bearer " + tokenResponseDto.getAccessToken());
+
+        return ResponseEntity.ok().headers(headers).body("재발행 성공");
+    }
+
     @ApiOperation("유저 상세 조회")
     @ApiResponses(value={
             @ApiResponse(code = 200,
