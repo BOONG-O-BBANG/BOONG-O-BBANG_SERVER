@@ -13,8 +13,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import javax.transaction.Transactional;
+import java.io.IOException;
 import java.util.List;
 
 
@@ -177,6 +181,80 @@ public class UserController {
     }
 
 
+
+    @ApiOperation(value = "회원 프로필 사진 등록/수정")
+    @ApiResponses(value={
+            @ApiResponse(code = 201,
+                    message = "USER_PROFILE_PHOTO_ADDED/UPDATED",
+                    response = UserResponseDto.class),
+            @ApiResponse(code = 400,
+                    message = "FIELD_REQUIRED / *_CHARACTER_INVALID / *_LENGTH_INVALID"),
+            @ApiResponse(code = 401,
+                    message = "UNAUTHORIZED_USER"),
+            @ApiResponse(code = 404,
+                    message = "USER_NOT_FOUND"),
+            @ApiResponse(code = 500,
+                    message = "SERVER_ERROR")
+    })
+    @ResponseStatus(HttpStatus.CREATED)
+    @PostMapping("/photo")
+    public ResponseEntity<String> updateUserProfilePhoto(
+            @RequestParam MultipartFile file
+    ) throws IOException {
+        String userNaverId = userService.getLoginUserInfo();
+        User user = userService.findUserByUserNaverId(userNaverId);
+
+        String url = userService.savePhoto(file, user);
+
+
+        return new ResponseEntity<>(user.getUserPhotoUrl(), HttpStatus.OK);
+    }
+
+    @ApiOperation("회원 프로필 사진 조회")
+    @ApiResponses(value={
+            @ApiResponse(code = 200,
+                    message = "USER_PROFILE_PHOTO_FOUND",
+                    response = UserResponseDto.class),
+            @ApiResponse(code = 401,
+                    message = "UNAUTHORIZED_USER"),
+            @ApiResponse(code = 404,
+                    message = "USER_NOT_FOUND"),
+            @ApiResponse(code = 500,
+                    message = "SERVER_ERROR")
+    })
+    @ResponseStatus(HttpStatus.OK)
+    @Transactional
+    @GetMapping("/photo/{userEmail}")
+    public ResponseEntity<String> getUserProfilePhoto(
+            @PathVariable String userEmail
+    ) {
+        User user = userService.findUserByUserEmail(userEmail);
+        return new ResponseEntity<>(user.getUserPhotoUrl(), HttpStatus.OK);
+    }
+
+    @ApiOperation("회원 본인 프로필 사진 삭제")
+    @ApiResponses(value={
+            @ApiResponse(code = 200,
+                    message = "USER_PROFILE_PHOTO_DELETED",
+                    response = UserResponseDto.class),
+            @ApiResponse(code = 401,
+                    message = "UNAUTHORIZED_USER"),
+            @ApiResponse(code = 404,
+                    message = "USER_NOT_FOUND"),
+            @ApiResponse(code = 500,
+                    message = "SERVER_ERROR")
+    })
+    @ResponseStatus(HttpStatus.OK)
+    @Transactional
+    @DeleteMapping("/photo")
+    public ResponseEntity<String> deleteUserProfilePhoto() {
+        String userNaverId = userService.getLoginUserInfo();
+        User user = userService.findUserByUserNaverId(userNaverId);
+
+        userService.deleteUserProfilePhoto(user);
+
+        return new ResponseEntity<>("프로필 사진 삭제", HttpStatus.OK);
+    }
 
 
 

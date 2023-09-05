@@ -1,5 +1,9 @@
 package com.project.boongobbang.service;
 
+import com.amazonaws.SdkClientException;
+import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.model.CannedAccessControlList;
+import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.project.boongobbang.domain.dto.token.TokenResponseDto;
 import com.project.boongobbang.domain.dto.user.*;
 import com.project.boongobbang.domain.entity.roommate.Notification;
@@ -26,29 +30,40 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.transaction.Transactional;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.project.boongobbang.enums.CleanCount.*;
 import static com.project.boongobbang.enums.UserType.CLEAN_0_1_E_T_SMOKER_NOCTURNAL;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
+import static org.springframework.http.HttpStatus.Series.SERVER_ERROR;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserService {
+    private  String bucketName = "boong-o-bbang-img";
+    private final AmazonS3Client amazonS3Client;
+
     private final JwtUtils jwtUtils;
+    private final AuthenticationManager authenticationManager;
+    private final RedisRefreshTokenRepository refreshTokenRepository;
+
     private final UserRepository userRepository;
     private final RoommateRepository roommateRepository;
     private final UserScoreRepository userScoreRepository;
-    private final AuthenticationManager authenticationManager;
     private final NotificationRepository notificationRepository;
-    private final RedisRefreshTokenRepository refreshTokenRepository;
 
 
     public Boolean validate(UserValidateDto dto) {
@@ -84,7 +99,7 @@ public class UserService {
                         .userHasExperience(dto.getUserHasExperience())
                         .userIsNocturnal(dto.getUserIsNocturnal())
                         .userIntroduction(dto.getUserIntroduction())
-                        .userPhotoUrl(dto.getUserPhotoUrl())
+                        .userPhotoUrl("empty")
                         .role(Role.ROLE_USER)
                         .userType(CLEAN_0_1_E_T_SMOKER_NOCTURNAL) //임시
                         .build());
@@ -294,6 +309,126 @@ public class UserService {
         UserResponseDto dto = new UserResponseDto(user);
         return dto;
     }
+
+
+
+
+
+
+
+
+    //사진 관련
+
+    //사진 저장
+    @org.springframework.transaction.annotation.Transactional
+    public String savePhoto(MultipartFile file, User user) {
+
+        log.info("[UserService] savePhoto");
+        log.info("user.getUserPhotoUrl = {}", user.getUserPhotoUrl());
+        if(!(user.getUserPhotoUrl().equals("empty"))){
+            log.info("[UserService] updateUserProfilePhoto : if(!(user.getUserPhotoUrl() == \"empty\"))");
+            deleteUserProfilePhoto(user);
+        }
+
+        String filename = file.getOriginalFilename();
+        String storedFileName = getUserProfileFileName(filename);
+
+        String photoUrl = uploadFileToS3(storedFileName, file);
+        user.setUserPhotoUrl(photoUrl);
+
+        return photoUrl;
+    }
+
+    //유저 프로필사진 삭제
+    @Transactional
+    public User deleteUserProfilePhoto(User user) {
+        log.info("[UserService] deleteUserProfilePhoto");
+
+        String fileName = extractProfilePhotoFileName(user);
+        log.info("[UserService] deleteUserProfilePhoto : fileName = {}", fileName);
+
+        user.setUserPhotoUrl("empty");
+        deleteFileFromS3(fileName);
+
+        return userRepository.save(user);
+    }
+
+    //유저 프로필 사진 이름 생성
+    public String getUserProfileFileName(String fileName){
+        return  "user_profile/"  + UUID.randomUUID()+ fileName.substring(fileName.lastIndexOf('.'));
+    }
+
+    //유저의 프로필 사진 이름 추출
+    public static String extractProfilePhotoFileName(User user) {
+        log.info("[UserService] extractProfilePhotoFileName");
+        String path = null;
+
+        try {
+            log.info("[???] = {}", user.getUserPhotoUrl());
+            URL url = new URL(user.getUserPhotoUrl());
+            log.info("url = {}", url);
+            path = url.getPath();
+            log.info("path = {}", path);
+
+            if (path.startsWith("/")) {
+                path = path.substring(1);
+                log.info("path = {}", path);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("RuntimeException 발생");
+        }
+        log.info("path = {}", path);
+        return path;
+    }
+
+    //S3에 사진 업로드
+    public String uploadFileToS3(String fileName, MultipartFile file) {
+
+        try {
+            File convertedFile = convertFile(file);
+            String uploadingFileName = fileName;
+
+            amazonS3Client.putObject(new PutObjectRequest(bucketName, uploadingFileName, convertedFile)
+                    .withCannedAcl(CannedAccessControlList.PublicRead));
+            convertedFile.delete();
+            String url = amazonS3Client.getUrl(bucketName, uploadingFileName).toString();
+            return url;
+        } catch (IOException e) {
+            throw new RuntimeException();
+        }
+    }
+
+    //S3 에서 사진 삭제
+    public void deleteFileFromS3(String fileName) {
+        log.info("[UserService] deleteFileFromS3");
+        try {
+            amazonS3Client.deleteObject(bucketName, fileName);
+        } catch (SdkClientException e) {
+            throw new RuntimeException();
+        }
+    }
+
+    //MultipartFile을 File로 전환
+    private File convertFile(MultipartFile file) throws IOException {
+        File convertingFile = new File(Objects.requireNonNull(file.getOriginalFilename()));
+        FileOutputStream fileOutputStream = new FileOutputStream(convertingFile);
+        fileOutputStream.write(file.getBytes());
+        fileOutputStream.close();
+
+        return convertingFile;
+    }
+
+    //사진 저장 이름 생성
+    public String getStoredFileName(String fileName){
+        return UUID.randomUUID() + fileName.substring(fileName.lastIndexOf('.'));
+    }
+
+
+
+
+
+
+
 
 
 
