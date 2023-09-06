@@ -24,7 +24,7 @@ public class NotificationController {
 
     private final UserService userService;
 
-    @ApiOperation("유저 알림 목록 조회")
+    @ApiOperation("유저 알림 목록 페이지로 조회")
     @ApiResponses(value={
             @ApiResponse(code = 200,
                     message = "USER_NOTIFICATIONS_FOUND",
