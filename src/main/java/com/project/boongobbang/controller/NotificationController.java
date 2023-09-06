@@ -80,7 +80,7 @@ public class NotificationController {
                     message = "SERVER_ERROR")
     })
     @ResponseStatus(HttpStatus.OK)
-    @GetMapping("/{pageNumber}")
+    @GetMapping("/all/{pageNumber}")
     public ResponseEntity<List<NotificationResponseDto>> getAllNotifications(
             @PathVariable int pageNumber){
         List<NotificationResponseDto> notificationResponseDtoList = userService.getNotificationsByPage(pageNumber - 1);

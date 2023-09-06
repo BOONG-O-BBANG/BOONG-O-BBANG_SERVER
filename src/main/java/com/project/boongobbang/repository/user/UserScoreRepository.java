@@ -17,7 +17,7 @@ public interface UserScoreRepository extends JpaRepository<UserScore, Integer> {
 
     //ratedUser 의 점수 총 합계 반환
     @Query("SELECT SUM(us.score) FROM UserScore us WHERE us.ratedUser.userEmail = :ratedUserEmail")
-    BigDecimal sumScoresByRatedUserId(@Param("ratedUserEmail") String ratedUserEmail);
+    BigDecimal sumScoresByRatedUserEmail(@Param("ratedUserEmail") String ratedUserEmail);
 
     //ratingUser 의 과거 평가들 조회
     List<UserScore> findUserScoresByRatingUserOrderByCreatedAt(User ratingUser);
