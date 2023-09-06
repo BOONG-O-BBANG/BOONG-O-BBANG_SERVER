@@ -299,12 +299,37 @@ public class UserController {
 
 
 
-
+    @ApiOperation("DB 에서 유저 조회")
+    @ApiResponses(value={
+            @ApiResponse(code = 200,
+                    message = "USER_FOUND",
+                    response = UserResponseDto.class),
+            @ApiResponse(code = 401,
+                    message = "UNAUTHORIZED_USER"),
+            @ApiResponse(code = 404,
+                    message = "USER_NOT_FOUND"),
+            @ApiResponse(code = 500,
+                    message = "SERVER_ERROR")
+    })
+    @ResponseStatus(HttpStatus.OK)
     @PostMapping("/validate")
     public ResponseEntity<Boolean> validate(@RequestBody UserValidateDto dto) {
         return ResponseEntity.ok().body(userService.validate(dto));
     }
 
+    @ApiOperation("토큰 재발행")
+    @ApiResponses(value={
+            @ApiResponse(code = 200,
+                    message = "TOKEN_PROVIDED",
+                    response = UserResponseDto.class),
+            @ApiResponse(code = 401,
+                    message = "UNAUTHORIZED_USER"),
+            @ApiResponse(code = 404,
+                    message = "USER_NOT_FOUND"),
+            @ApiResponse(code = 500,
+                    message = "SERVER_ERROR")
+    })
+    @ResponseStatus(HttpStatus.OK)
     @PostMapping("/reissue")
     public ResponseEntity<String> reIssue(@RequestBody ReIssueDto dto) {
         TokenResponseDto tokenResponseDto = userService.reissue(dto);
