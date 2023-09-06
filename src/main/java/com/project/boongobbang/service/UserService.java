@@ -4,6 +4,7 @@ import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.project.boongobbang.domain.dto.roommate.NotificationResponseDto;
 import com.project.boongobbang.domain.dto.roommate.RoommateResponseDto;
 import com.project.boongobbang.domain.dto.token.TokenResponseDto;
 import com.project.boongobbang.domain.dto.user.*;
@@ -299,6 +300,24 @@ public class UserService {
             userProfileDtoList.add(new UserProfileDto(roommateUser));
         }
         return userProfileDtoList;
+    }
+
+    //User 입력받아 해당 유저의 Notification 목록 페이지로 검색
+    public List<NotificationResponseDto> getNotificationsByUserAndPage(User user, int pageNumber){
+        Pageable pageable = PageRequest.of(pageNumber, 10);
+        Page<Notification> notificationPage = notificationRepository.findNotificationsByCheckUser(user, pageable);
+        return notificationPage.stream()
+                .map(notification -> new NotificationResponseDto(notification))
+                .collect((Collectors.toList()));
+    }
+
+    //전체 Notification 페이지로 검색
+    public List<NotificationResponseDto> getNotificationsByPage(int pageNumber){
+        Pageable pageable = PageRequest.of(pageNumber, 10);
+        Page<Notification> notificationPage = notificationRepository.findAll(pageable);
+        return notificationPage.stream()
+                .map(notification -> new NotificationResponseDto(notification))
+                .collect(Collectors.toList());
     }
 
 
