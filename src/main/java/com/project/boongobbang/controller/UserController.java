@@ -33,7 +33,7 @@ public class UserController {
 
     //유저 CRUD
 
-    @ApiOperation("유저 회원가입")
+    @ApiOperation("유저 가입")
     @ApiResponses(value={
             @ApiResponse(code = 201,
                     message = "USER_SIGN_UP",
@@ -51,7 +51,7 @@ public class UserController {
             @RequestBody UserSignUpDto dto) {
         userService.signUp(dto);
 
-        return ResponseEntity.ok().body("회원가입이 되었습니다.");
+        return ResponseEntity.ok().body("유저가입이 되었습니다.");
     }
 
     @ApiOperation("유저 로그인")
@@ -97,7 +97,7 @@ public class UserController {
         return new ResponseEntity<>(userResponseDto, HttpStatus.OK);
     }
 
-    @ApiOperation("유저 본인 프로필 조회")
+    @ApiOperation("로그인 유저 프로필 조회")
     @ApiResponses(value={
             @ApiResponse(code = 200,
                     message = "USER_PROFILE_FOUND",
@@ -163,7 +163,7 @@ public class UserController {
         return new ResponseEntity<>(userSimpleDtoList, HttpStatus.OK);
     }
 
-    @ApiOperation("유저 정보 수정")
+    @ApiOperation("로그인 유저 정보 수정")
     @ApiResponses(value={
             @ApiResponse(code = 200,
                     message = "USER_UPDATED",
@@ -187,7 +187,7 @@ public class UserController {
         return new ResponseEntity<>(userResponseDto, HttpStatus.OK);
     }
 
-    @ApiOperation("유저 스스로 탈퇴 (임시)")
+    @ApiOperation("로그인 유저 스스로 탈퇴 (임시)")
     @ApiResponses(value={
             @ApiResponse(code = 200,
                     message = "USER_DELETED",
@@ -213,7 +213,7 @@ public class UserController {
 
     //프로필 사진 관련
 
-    @ApiOperation(value = "회원 프로필 사진 등록/수정")
+    @ApiOperation(value = "로그인 유저 프로필 사진 등록/수정")
     @ApiResponses(value={
             @ApiResponse(code = 201,
                     message = "USER_PROFILE_PHOTO_ADDED/UPDATED",
@@ -241,7 +241,7 @@ public class UserController {
         return new ResponseEntity<>(user.getUserPhotoUrl(), HttpStatus.OK);
     }
 
-    @ApiOperation("회원 프로필 사진 조회")
+    @ApiOperation("유저 프로필 사진 조회")
     @ApiResponses(value={
             @ApiResponse(code = 200,
                     message = "USER_PROFILE_PHOTO_FOUND",
@@ -263,7 +263,7 @@ public class UserController {
         return new ResponseEntity<>(user.getUserPhotoUrl(), HttpStatus.OK);
     }
 
-    @ApiOperation("회원 본인 프로필 사진 삭제")
+    @ApiOperation("로그인 유저 프로필 사진 삭제")
     @ApiResponses(value={
             @ApiResponse(code = 200,
                     message = "USER_PROFILE_PHOTO_DELETED",
@@ -293,102 +293,6 @@ public class UserController {
 
 
 
-    @ApiOperation("현재 유저의 매칭 상태 조회")
-    @ApiResponses(value={
-            @ApiResponse(code = 200,
-                    message = "USER_ROOMMATE_STATUS_FOUND",
-                    response = UserResponseDto.class),
-            @ApiResponse(code = 401,
-                    message = "UNAUTHORIZED_USER"),
-            @ApiResponse(code = 404,
-                    message = "USER_NOT_FOUND"),
-            @ApiResponse(code = 500,
-                    message = "SERVER_ERROR")
-    })
-    @ResponseStatus(HttpStatus.OK)
-    @GetMapping("/matching")
-    public ResponseEntity<List<UserProfileDto>> getUserMatchingStatus(){
-        String userNaverId = userService.getLoginUserInfo();
-        User user = userService.findUserByUserNaverId(userNaverId);
-
-        List<UserProfileDto> userAndRoommate = userService.getUserAndRoommate(user);
-        return new ResponseEntity<>(userAndRoommate, HttpStatus.OK);
-    }
-
-
-
-    @ApiOperation("유저 과거 룸메이트 목록 페이지로 조회")
-    @ApiResponses(value={
-            @ApiResponse(code = 200,
-                    message = "USER_PREVIOUS_ROOMMATES_FOUND",
-                    response = UserResponseDto.class),
-            @ApiResponse(code = 401,
-                    message = "UNAUTHORIZED_USER"),
-            @ApiResponse(code = 404,
-                    message = "USER_NOT_FOUND"),
-            @ApiResponse(code = 500,
-                    message = "SERVER_ERROR")
-    })
-    @ResponseStatus(HttpStatus.OK)
-    @GetMapping("/history/{pageNumber}")
-    public ResponseEntity<List<HistoryResponseDto>> getRoommateHistoryList(
-            @PathVariable int pageNumber){
-        String userNaverId = userService.getLoginUserInfo();
-        User user = userService.findUserByUserNaverId(userNaverId);
-
-        List<HistoryResponseDto> historyResponseDtoList = userService.returnUserPreviousRoommatesByPage(user, pageNumber - 1);
-        return new ResponseEntity<>(historyResponseDtoList, HttpStatus.OK);
-    }
-
-    @ApiOperation("유저 과거 룸메이트 평가")
-    @ApiResponses(value={
-            @ApiResponse(code = 200,
-                    message = "USER_PREVIOUS_ROOMMATES_RATED",
-                    response = UserResponseDto.class),
-            @ApiResponse(code = 401,
-                    message = "UNAUTHORIZED_USER"),
-            @ApiResponse(code = 404,
-                    message = "USER_NOT_FOUND"),
-            @ApiResponse(code = 500,
-                    message = "SERVER_ERROR")
-    })
-    @ResponseStatus(HttpStatus.OK)
-    @PostMapping("/score/{userScoreId}")
-    public ResponseEntity<String> rateRoommate(
-            @PathVariable Long userScoreId,
-            int score){
-        if(userService.validateUserScoreRated(userScoreId)){
-            return new ResponseEntity<>("이미 평가된 기록입니다", HttpStatus.BAD_REQUEST);
-        }
-        userService.rateRoommate(userScoreId, score);
-        return new ResponseEntity<>("룸메이트 평가 완료", HttpStatus.OK);
-    }
-
-
-
-
-    @ApiOperation("유저에게 룸메이트 추천")
-    @ApiResponses(value={
-            @ApiResponse(code = 200,
-                    message = "ROOMMATE_RECOMMENDATED",
-                    response = UserResponseDto.class),
-            @ApiResponse(code = 401,
-                    message = "UNAUTHORIZED_USER"),
-            @ApiResponse(code = 404,
-                    message = "USER_NOT_FOUND"),
-            @ApiResponse(code = 500,
-                    message = "SERVER_ERROR")
-    })
-    @ResponseStatus(HttpStatus.OK)
-    @GetMapping("/recommendetion")
-    public ResponseEntity<List<UserProfileDto>> recommendRoommateList(
-    ){
-        String userNaverId = userService.getLoginUserInfo();
-        User user = userService.findUserByUserNaverId(userNaverId);
-
-        List<UserProfileDto> recommandedRoomates = userService.recommandRoommates(user);
-        return new ResponseEntity<>(recommandedRoomates, HttpStatus.OK);
-    }
 
 
 
