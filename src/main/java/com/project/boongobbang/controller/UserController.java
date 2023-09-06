@@ -1,6 +1,7 @@
 package com.project.boongobbang.controller;
 
 
+import com.project.boongobbang.domain.dto.roommate.HistoryResponseDto;
 import com.project.boongobbang.domain.dto.token.TokenResponseDto;
 import com.project.boongobbang.domain.dto.user.*;
 import com.project.boongobbang.domain.entity.user.User;
@@ -312,6 +313,55 @@ public class UserController {
 
         List<UserProfileDto> userAndRoommate = userService.getUserAndRoommate(user);
         return new ResponseEntity<>(userAndRoommate, HttpStatus.OK);
+    }
+
+
+
+    @ApiOperation("유저 과거 룸메이트 목록 페이지로 조회")
+    @ApiResponses(value={
+            @ApiResponse(code = 200,
+                    message = "USER_PREVIOUS_ROOMMATES_FOUND",
+                    response = UserResponseDto.class),
+            @ApiResponse(code = 401,
+                    message = "UNAUTHORIZED_USER"),
+            @ApiResponse(code = 404,
+                    message = "USER_NOT_FOUND"),
+            @ApiResponse(code = 500,
+                    message = "SERVER_ERROR")
+    })
+    @ResponseStatus(HttpStatus.OK)
+    @GetMapping("/history/{pageNumber}")
+    public ResponseEntity<List<HistoryResponseDto>> getRoommateHistoryList(
+            @PathVariable int pageNumber){
+        String userNaverId = userService.getLoginUserInfo();
+        User user = userService.findUserByUserNaverId(userNaverId);
+
+        List<HistoryResponseDto> historyResponseDtoList = userService.returnUserPreviousRoommatesByPage(user, pageNumber - 1);
+        return new ResponseEntity<>(historyResponseDtoList, HttpStatus.OK);
+    }
+
+    @ApiOperation("유저 과거 룸메이트 평가")
+    @ApiResponses(value={
+            @ApiResponse(code = 200,
+                    message = "USER_PREVIOUS_ROOMMATES_RATED",
+                    response = UserResponseDto.class),
+            @ApiResponse(code = 401,
+                    message = "UNAUTHORIZED_USER"),
+            @ApiResponse(code = 404,
+                    message = "USER_NOT_FOUND"),
+            @ApiResponse(code = 500,
+                    message = "SERVER_ERROR")
+    })
+    @ResponseStatus(HttpStatus.OK)
+    @PostMapping("/score/{userScoreId}")
+    public ResponseEntity<String> rateRoommate(
+            @PathVariable Long userScoreId,
+            int score){
+        if(userService.validateUserScoreRated(userScoreId)){
+            return new ResponseEntity<>("이미 평가된 기록입니다", HttpStatus.BAD_REQUEST);
+        }
+        userService.rateRoommate(userScoreId, score);
+        return new ResponseEntity<>("룸메이트 평가 완료", HttpStatus.OK);
     }
 
 

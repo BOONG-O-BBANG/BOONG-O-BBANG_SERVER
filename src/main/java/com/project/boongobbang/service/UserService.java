@@ -4,6 +4,7 @@ import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.project.boongobbang.domain.dto.roommate.HistoryResponseDto;
 import com.project.boongobbang.domain.dto.roommate.NotificationResponseDto;
 import com.project.boongobbang.domain.dto.roommate.RoommateResponseDto;
 import com.project.boongobbang.domain.dto.token.TokenResponseDto;
@@ -39,6 +40,8 @@ import javax.transaction.Transactional;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.net.URL;
 import java.util.*;
 import java.util.function.Function;
@@ -84,23 +87,40 @@ public class UserService {
 
         userRepository.save(
                 User.builder()
+                        .userEmail(dto.getUserEmail())
                         .userNaverId(dto.getUserNaverId())
                         .username(dto.getUsername())
                         .userNickname(dto.getUserNickname())
-                        .userEmail(dto.getUserEmail())
                         .userBirth(dto.getUserBirth())
                         .userMobile(dto.getUserMobile())
+
                         .userGender(dto.getUserGender())
                         .userCleanCount(dto.getUserCleanCount())
                         .userLocation(dto.getUserLocation())
                         .userMBTI(dto.getUserMBTI())
+                        .role(Role.ROLE_USER)
+
                         .userHasPet(dto.getUserHasPet())
                         .userHasExperience(dto.getUserHasExperience())
+                        .userIsSmoker(dto.getUserIsSmoker())
                         .userIsNocturnal(dto.getUserIsNocturnal())
+
                         .userIntroduction(dto.getUserIntroduction())
                         .userPhotoUrl("empty")
-                        .role(Role.ROLE_USER)
                         .userType(CLEAN_0_1_E_T_SMOKER_NOCTURNAL) //임시
+
+                        .averageScore(null)
+                        .ratedCount(0L)
+
+                        .sentRoommateList(new ArrayList<>())
+                        .receivedRoommateList(new ArrayList<>())
+
+                        .receivedNotificationList(new ArrayList<>())
+
+                        .gaveScoreList(new ArrayList<>())
+                        .receivedScoreList(new ArrayList<>())
+
+                        .isPaired(false)
                         .build());
     }
 
@@ -318,6 +338,21 @@ public class UserService {
         return notificationPage.stream()
                 .map(notification -> new NotificationResponseDto(notification))
                 .collect(Collectors.toList());
+    }
+
+    //User 입력받아 해당 유저의 이전 룸메이트 목록 페이지로 검색
+    public List<HistoryResponseDto> returnUserPreviousRoommatesByPage(User user, int pageNumber) {
+        Pageable pageable = PageRequest.of(pageNumber, 10);
+        Page<UserScore> userScorepage = userScoreRepository.findUserScoresByRatingUserOrderByCreatedAt(user, pageable);
+        return userScoreRepository.findUserScoresByRatingUserOrderByCreatedAt(user).stream()
+                .map(userScore -> new HistoryResponseDto(userScore, userScore.getRatedUser()))
+                .collect(Collectors.toList());
+    }
+
+    //UserScore 가 이미 평가했는지 여부 반환
+    public boolean validateUserScoreRated(Long userScoreId){
+        UserScore userScore = findUserScoreByUserScoreId(userScoreId);
+        return userScore.isRated();
     }
 
 
@@ -595,6 +630,38 @@ public class UserService {
                 .isRated(false)
                 .build();
         userScoreRepository.save(userScore2);
+    }
+
+    //룸메이트 평가
+    @Transactional
+    public void rateRoommate(Long userScoreId, int score) {
+        UserScore userScore = findUserScoreByUserScoreId(userScoreId);
+        User roommate = userScore.getRatedUser();
+
+        userScore.setScore(score);
+        userScore.setIsRated(true);
+        userScoreRepository.save(userScore);
+
+        //평가 당한 유저의 평균 점수 업데이트
+        updateAverageScore(roommate);
+    }
+
+    // 평균 점수 업데이트
+    private void updateAverageScore(User user) {
+
+        //userId 갖는 모든 UserScore 의 score 합산
+        BigDecimal totalScore = userScoreRepository.sumScoresByRatedUserEmail(user.getUserEmail());
+
+        //UserAverageScore 의 현재 count + 1
+        Long count = user.getRatedCount() + 1;
+
+        //새로운 평균 점수
+        BigDecimal averageScore = totalScore.divide(BigDecimal.valueOf(count), 2, RoundingMode.HALF_UP);
+
+        user.setAverageScore(averageScore);
+        user.setRatedCount(count);
+
+        userRepository.save(user);
     }
 
 
