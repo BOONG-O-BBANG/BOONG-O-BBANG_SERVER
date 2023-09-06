@@ -294,6 +294,20 @@ public class UserService {
         return roommate;
     }
 
+    //로그인 User 의 현재 룸메이트 검색
+    public Roommate findRoommateByLoginUser(String userEmail) {
+        Roommate roommate;
+        try {
+            roommate = roommateRepository.findRoommateByLoginUser(userEmail)
+                    .orElseThrow(
+                            () -> new RuntimeException()
+                    );
+        } catch (RuntimeException e) {
+            return null;
+        }
+        return roommate;
+    }
+
     //전체 User 페이지로 검색
     public List<UserSimpleDto> getUsersByPage(int pageNumber) {
         Pageable pageable = PageRequest.of(pageNumber, 10);

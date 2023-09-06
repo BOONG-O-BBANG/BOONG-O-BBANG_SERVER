@@ -114,9 +114,18 @@ public class RoommateController {
                     message = "SERVER_ERROR")
     })
     @ResponseStatus(HttpStatus.OK)
-    @PatchMapping("/{roommateId}")
-    public ResponseEntity<String> endRoommate(@PathVariable Long roommateId){
-        userService.endRoommate(roommateId);
+    @PatchMapping
+    public ResponseEntity<String> endRoommate(){
+        String userNaverId = userService.getLoginUserInfo();
+        User user = userService.findUserByUserNaverId(userNaverId);
+
+        Roommate roommate = userService.findRoommateByLoginUser(user.getUserEmail());
+
+        if(roommate == null){
+            return new ResponseEntity<>("룸메이트가 없습니다", HttpStatus.BAD_REQUEST);
+        }
+
+        userService.endRoommate(roommate.getRoommateId());
         return new ResponseEntity<>("룸메이트 관계를 끊었습니다", HttpStatus.OK);
     }
 
