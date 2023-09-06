@@ -54,7 +54,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.project.boongobbang.enums.CleanCount.*;
-import static com.project.boongobbang.enums.UserType.CLEAN_0_1_E_T_SMOKER_NOCTURNAL;
+import static com.project.boongobbang.enums.UserType.CLEAN_1_2_E_T_SMOKER_NOCTURNAL;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
 @Slf4j
@@ -113,7 +113,7 @@ public class UserService {
 
                         .userIntroduction(dto.getUserIntroduction())
                         .userPhotoUrl("empty")
-                        .userType(CLEAN_0_1_E_T_SMOKER_NOCTURNAL) //임시
+                        .userType(CLEAN_1_2_E_T_SMOKER_NOCTURNAL) //임시
 
                         .averageScore(null)
                         .ratedCount(0L)
@@ -135,12 +135,12 @@ public class UserService {
 
         List<Function<User, String>> userCharacteristics = Arrays.asList(
                 u -> {
-                    if (u.getUserCleanCount() == ZERO_TO_ONE) {
-                        return "CLEAN_0_1_";
-                    } else if (u.getUserCleanCount() == TWO_TO_FOUR) {
-                        return "CLEAN_2_4_";
-                    } else if (u.getUserCleanCount() == MORE_THAN_FIVE) {
-                        return "CLEAN_MORE_5_";
+                    if (u.getUserCleanCount() == ONE_TO_TWO) {
+                        return "CLEAN_1_2_";
+                    } else if (u.getUserCleanCount() == THREE_TO_FOUR) {
+                        return "CLEAN_3_4_";
+                    } else if (u.getUserCleanCount() == MORE_THAN_FOUR) {
+                        return "CLEAN_MORE_4_";
                     } else {
                         throw new IllegalArgumentException("일치하는 유저타입이 없습니다");
                     }

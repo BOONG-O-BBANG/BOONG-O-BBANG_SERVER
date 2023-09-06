@@ -37,7 +37,7 @@ public class UserSignUpDto {
     @ApiModelProperty(position = 7, required = true, value = "유저 성별", example = "MAN")
     private Gender userGender;
 
-    @ApiModelProperty(position = 8, required = true, value = "유저 주 청소횟수", example = "ZERO_TO_ONE")
+    @ApiModelProperty(position = 8, required = true, value = "유저 주 청소횟수", example = "ONE_TO_TWO")
     private CleanCount userCleanCount;
 
     @ApiModelProperty(position = 9, required = true, value = "유저 희망 거주지", example = "은평구")

@@ -8,9 +8,9 @@ import java.util.Arrays;
 
 @Getter
 public enum CleanCount {
-    ZERO_TO_ONE(0),
-    TWO_TO_FOUR(1),
-    MORE_THAN_FIVE(2);
+    ONE_TO_TWO(0),
+    THREE_TO_FOUR(1),
+    MORE_THAN_FOUR(2);
 
     private int type;
 
