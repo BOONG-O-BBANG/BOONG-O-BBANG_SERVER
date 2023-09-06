@@ -36,6 +36,12 @@ import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import javax.transaction.Transactional;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -666,6 +672,54 @@ public class UserService {
 
 
 
+
+
+
+    //룸메이트 유저 추천
+    public List<UserProfileDto> recommandRoommates(User user){
+
+        return findMatchingRoommates(user).stream()
+//               .map(recommandedUser -> new UserSimpleDto(recommandedUser))
+//               .collect(Collectors.toList());
+                .map(recommandedUser -> new UserProfileDto(recommandedUser))
+                .collect(Collectors.toList());
+    }
+
+    @PersistenceContext
+    private EntityManager entityManager;
+
+    public List<User> findMatchingRoommates(User user1) {
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<User> cq = cb.createQuery(User.class);
+        Root<User> userRoot = cq.from(User.class);
+
+        Predicate sameLocation = cb.equal(userRoot.get("userLocation"), user1.getUserLocation());
+        Predicate sameGender = cb.equal(userRoot.get("userGender"), user1.getUserGender());
+        Predicate isNotPaired = cb.equal(userRoot.get("isPaired"), false);
+        Predicate ageDifference = cb.between(userRoot.get("userBirth"), user1.getUserBirth().minusYears(3), user1.getUserBirth().plusYears(3));
+        Predicate notSameUser = cb.notEqual(userRoot.get("userEmail"), user1.getUserEmail());
+
+        cq.where(sameLocation, sameGender, isNotPaired, ageDifference, notSameUser);
+
+        List<User> resultList = entityManager.createQuery(cq).setMaxResults(100).getResultList();
+
+        if (resultList.size() < 50) {
+            // Ignore userBirth
+            cq.where(sameLocation, sameGender, isNotPaired, notSameUser);
+            List<User> resultListWithoutAge = entityManager.createQuery(cq).setMaxResults(100).getResultList();
+            resultList.addAll(resultListWithoutAge.stream().filter(user -> !resultList.contains(user)).collect(Collectors.toList()));
+
+            if (resultList.size() < 50) {
+                // Ignore userLocation
+                cq.where(sameGender, isNotPaired, notSameUser);
+                List<User> resultListWithoutLocation = entityManager.createQuery(cq).setMaxResults(100).getResultList();
+                resultList.addAll(resultListWithoutLocation.stream().filter(user -> !resultList.contains(user)).collect(Collectors.toList()));
+            }
+        }
+
+        // Trim the list to 50 if necessary
+        return resultList.size() > 50 ? resultList.subList(0, 50) : resultList;
+    }
 
 
 

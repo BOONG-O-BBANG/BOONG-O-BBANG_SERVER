@@ -8,6 +8,7 @@ import lombok.*;
 import javax.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -87,22 +88,22 @@ public class User {
     //MAPPING
 
     //Roommate
-    @OneToMany(mappedBy = "user1", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Roommate> sentRoommateList;
+    @OneToMany(mappedBy = "user1", cascade = CascadeType.PERSIST)
+    private List<Roommate> sentRoommateList = new ArrayList<>();
 
-    @OneToMany(mappedBy = "user2", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Roommate> receivedRoommateList;
+    @OneToMany(mappedBy = "user2", cascade = CascadeType.PERSIST)
+    private List<Roommate> receivedRoommateList = new ArrayList<>();
 
     //Notification
     @OneToMany(mappedBy = "checkUser")
-    private List<Notification> receivedNotificationList;
+    private List<Notification> receivedNotificationList = new ArrayList<>();
 
     //UserScore
-    @OneToMany(mappedBy = "ratingUser", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<UserScore> gaveScoreList;
+    @OneToMany(mappedBy = "ratingUser", cascade = CascadeType.PERSIST)
+    private List<UserScore> gaveScoreList = new ArrayList<>();
 
-    @OneToMany(mappedBy = "ratedUser", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<UserScore> receivedScoreList;
+    @OneToMany(mappedBy = "ratedUser", cascade = CascadeType.PERSIST)
+    private List<UserScore> receivedScoreList = new ArrayList<>();
 
 
     @Enumerated(EnumType.STRING)
