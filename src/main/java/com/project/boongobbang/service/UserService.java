@@ -4,6 +4,7 @@ import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.project.boongobbang.domain.dto.roommate.RoommateResponseDto;
 import com.project.boongobbang.domain.dto.token.TokenResponseDto;
 import com.project.boongobbang.domain.dto.user.*;
 import com.project.boongobbang.domain.entity.roommate.Notification;
@@ -12,7 +13,6 @@ import com.project.boongobbang.domain.entity.user.User;
 import com.project.boongobbang.domain.entity.user.UserScore;
 import com.project.boongobbang.enums.NotificationType;
 import com.project.boongobbang.enums.Role;
-import com.project.boongobbang.enums.UserType;
 import com.project.boongobbang.exception.AppException;
 import com.project.boongobbang.exception.ErrorCode;
 import com.project.boongobbang.jwt.JwtUtils;
@@ -46,7 +46,6 @@ import java.util.stream.Collectors;
 import static com.project.boongobbang.enums.CleanCount.*;
 import static com.project.boongobbang.enums.UserType.CLEAN_0_1_E_T_SMOKER_NOCTURNAL;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
-import static org.springframework.http.HttpStatus.Series.SERVER_ERROR;
 
 @Slf4j
 @Service
@@ -157,8 +156,7 @@ public class UserService {
     }
 
     @Transactional
-    public User updateUser(String userEmail, UserUpdateRequestDto dto) {
-        User user = findUserByUserEmail(userEmail);
+    public User updateUser(User user, UserUpdateRequestDto dto) {
 
         if (!Objects.equals(user.getUserNickname(), dto.getUserNickname())) {
             user.setUserNickname(dto.getUserNickname());
@@ -277,6 +275,33 @@ public class UserService {
                 .map(user -> new UserSimpleDto(user))
                 .collect(Collectors.toList());
     }
+
+    //전체 룸메이트 검색
+    public List<RoommateResponseDto> getRoommateList(){
+        return roommateRepository.findAll().stream()
+                .map(roommate -> new RoommateResponseDto(roommate))
+                .collect(Collectors.toList());
+    }
+
+    //유저의 현재 룸메이트 매칭상태 조회(메인 페이지)
+    public List<UserProfileDto> getUserAndRoommate(User user){
+        List<UserProfileDto> userProfileDtoList = new ArrayList<>();
+        userProfileDtoList.add(new UserProfileDto(user));
+        if(user.isPaired()){
+            User roommateUser = roommateRepository.findRoommatesByUserEmail(user.getUserEmail()).stream()
+                    .filter(roommate -> roommate.getEndDate() == null)
+                    .filter(roommate -> roommate.getUser1()==(user) || roommate.getUser2()==(user))
+                    .map(roommate -> roommate.getUser1().equals(user) ? roommate.getUser2() : roommate.getUser1())
+                    .findFirst()
+                    .orElseThrow(
+                            () -> new RuntimeException("getUserAndRoommate 에러")
+                    );
+            userProfileDtoList.add(new UserProfileDto(roommateUser));
+        }
+        return userProfileDtoList;
+    }
+
+
 
 
 
@@ -520,6 +545,37 @@ public class UserService {
     @Transactional
     public void deleteNotification(Long notificationId) {
         notificationRepository.deleteNotificationByNotificationId(notificationId);
+    }
+
+    //룸메이트 관계 종료
+    @Transactional
+    public void endRoommate(Long roommateId){
+        Roommate roommate = findRoommateByRoommateId(roommateId);
+        roommate.end();
+        roommateRepository.save(roommate);
+
+        User user1 = roommate.getUser1();
+        user1.setIsPaired(false);
+        User user2 = roommate.getUser2();
+        user2.setIsPaired(false);
+        userRepository.save(user1);
+        userRepository.save(user2);
+
+        //관계 종료와 동시에 서로에 대한 UserScore 생성 (평가 X)
+        UserScore userScore1 = UserScore.builder()
+                .ratingUser(roommate.getUser1())
+                .ratedUser(roommate.getUser2())
+                .score(0)
+                .isRated(false)
+                .build();
+        userScoreRepository.save(userScore1);
+        UserScore userScore2 = UserScore.builder()
+                .ratingUser(roommate.getUser2())
+                .ratedUser(roommate.getUser1())
+                .score(0)
+                .isRated(false)
+                .build();
+        userScoreRepository.save(userScore2);
     }
 
 

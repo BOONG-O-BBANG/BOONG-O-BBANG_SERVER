@@ -13,7 +13,6 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class UserResponseDto {
-    private Long userId;
     private String userNaverId;
     private String username;
     private String userNickname;

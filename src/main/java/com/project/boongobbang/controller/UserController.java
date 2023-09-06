@@ -30,6 +30,8 @@ public class UserController {
 
     private final UserService userService;
 
+    //유저 CRUD
+
     @ApiOperation("유저 회원가입")
     @ApiResponses(value={
             @ApiResponse(code = 201,
@@ -116,6 +118,30 @@ public class UserController {
         return new ResponseEntity<>(userProfileDto, HttpStatus.CREATED);
     }
 
+    @ApiOperation("다른 유저 프로필 조회")
+    @ApiResponses(value={
+            @ApiResponse(code = 200,
+                    message = "USER_PROFILE_FOUND",
+                    response = UserResponseDto.class),
+            @ApiResponse(code = 401,
+                    message = "UNAUTHORIZED_USER"),
+            @ApiResponse(code = 404,
+                    message = "USER_NOT_FOUND"),
+            @ApiResponse(code = 500,
+                    message = "SERVER_ERROR")
+    })
+    @ResponseStatus(HttpStatus.OK)
+    @GetMapping("/{otherUserEmail}")
+    public ResponseEntity<UserProfileDto> getUserProfile(
+            @PathVariable String otherUserEmail) {
+        String userNaverId = userService.getLoginUserInfo();
+        User me = userService.findUserByUserNaverId(userNaverId);
+
+        User user = userService.findUserByUserEmail(otherUserEmail);
+        UserProfileDto userProfileDto = userService.returnUserProfileDto(me, user);
+        return new ResponseEntity<>(userProfileDto, HttpStatus.CREATED);
+    }
+
     @ApiOperation("전체 유저 페이지로 조회")
     @ApiResponses(value={
             @ApiResponse(code = 200,
@@ -154,6 +180,7 @@ public class UserController {
             @RequestBody UserUpdateRequestDto dto) {
         String userNaverId = userService.getLoginUserInfo();
         User user = userService.findUserByUserNaverId(userNaverId);
+        user = userService.updateUser(user, dto);
 
         UserResponseDto userResponseDto = userService.returnUserDto(user);
         return new ResponseEntity<>(userResponseDto, HttpStatus.OK);
@@ -182,6 +209,8 @@ public class UserController {
     }
 
 
+
+    //프로필 사진 관련
 
     @ApiOperation(value = "회원 프로필 사진 등록/수정")
     @ApiResponses(value={
@@ -255,6 +284,34 @@ public class UserController {
         userService.deleteUserProfilePhoto(user);
 
         return new ResponseEntity<>("프로필 사진 삭제", HttpStatus.OK);
+    }
+
+
+
+
+
+
+
+    @ApiOperation("현재 유저의 매칭 상태 조회")
+    @ApiResponses(value={
+            @ApiResponse(code = 200,
+                    message = "USER_ROOMMATE_STATUS_FOUND",
+                    response = UserResponseDto.class),
+            @ApiResponse(code = 401,
+                    message = "UNAUTHORIZED_USER"),
+            @ApiResponse(code = 404,
+                    message = "USER_NOT_FOUND"),
+            @ApiResponse(code = 500,
+                    message = "SERVER_ERROR")
+    })
+    @ResponseStatus(HttpStatus.OK)
+    @GetMapping("/matching")
+    public ResponseEntity<List<UserProfileDto>> getUserMatchingStatus(){
+        String userNaverId = userService.getLoginUserInfo();
+        User user = userService.findUserByUserNaverId(userNaverId);
+
+        List<UserProfileDto> userAndRoommate = userService.getUserAndRoommate(user);
+        return new ResponseEntity<>(userAndRoommate, HttpStatus.OK);
     }
 
 

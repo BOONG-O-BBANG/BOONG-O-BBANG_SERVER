@@ -23,6 +23,12 @@ public class UserScore extends TimeStamped {
     @JoinColumn(name = "rated_user_id")
     private User ratedUser; //평가받는 User
 
+    @Column(name = "is_rated")
+    private boolean isRated;
+    public void setIsRated(boolean isRated){
+        this.isRated = isRated;
+    }
+
     @Column(name = "score")
     private int score; //평가하는 사람이 평가받는 사람에게 준 점수
     public void setScore(int score) {
