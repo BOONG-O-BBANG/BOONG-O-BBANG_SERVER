@@ -6,6 +6,7 @@ import com.project.boongobbang.domain.entity.user.User;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 @Getter
@@ -17,7 +18,7 @@ public class UserResponseDto {
     private String username;
     private String userNickname;
     private String userEmail;
-    private String userBirth;
+    private int userAge;
     private String userMobile;
 
     private String userGender;
@@ -47,7 +48,7 @@ public class UserResponseDto {
         this.userNaverId = user.getUserNaverId();
         this.userNickname = user.getUserNickname();
         this.userEmail = user.getUserEmail();
-        this.userBirth = user.getUserBirth().toString();
+        this.userAge = LocalDate.now().getYear() - user.getUserBirth().getYear();
         this.userMobile = user.getUserMobile();
         this.userGender = user.getUserGender().toString();
         this.userCleanCount = user.getUserCleanCount().toString();
@@ -74,7 +75,7 @@ public class UserResponseDto {
         this.userNaverId = user.getUserNaverId();
         this.userNickname = (user.getUserNickname());
         this.userEmail = (user.getUserEmail());
-        this.userBirth = (user.getUserBirth().toString());
+        this.userAge = LocalDate.now().getYear() - user.getUserBirth().getYear();
         this.userMobile = (user.getUserMobile());
         this.userGender = (user.getUserGender().toString());
         this.userCleanCount = (user.getUserCleanCount().toString());

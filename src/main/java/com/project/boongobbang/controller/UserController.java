@@ -1,11 +1,9 @@
 package com.project.boongobbang.controller;
 
 
-import com.project.boongobbang.domain.dto.roommate.HistoryResponseDto;
 import com.project.boongobbang.domain.dto.token.TokenResponseDto;
 import com.project.boongobbang.domain.dto.user.*;
 import com.project.boongobbang.domain.entity.user.User;
-import com.project.boongobbang.jwt.JwtUtils;
 import com.project.boongobbang.service.UserService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
