@@ -1,6 +1,8 @@
 package com.project.boongobbang.controller;
 
+import com.project.boongobbang.domain.dto.roommate.HistoryResponseDto;
 import com.project.boongobbang.domain.dto.roommate.NotificationResponseDto;
+import com.project.boongobbang.domain.dto.user.UserProfileDto;
 import com.project.boongobbang.domain.dto.user.UserResponseDto;
 import com.project.boongobbang.domain.entity.user.User;
 import com.project.boongobbang.service.UserService;
@@ -24,7 +26,7 @@ public class NotificationController {
 
     private final UserService userService;
 
-    @ApiOperation("유저 알림 목록 페이지로 조회")
+    @ApiOperation("로그인 유저 알림 목록 페이지로 조회")
     @ApiResponses(value={
             @ApiResponse(code = 200,
                     message = "USER_NOTIFICATIONS_FOUND",
@@ -47,7 +49,7 @@ public class NotificationController {
         return new ResponseEntity<>(notificationResponseDtoList, HttpStatus.OK);
     }
 
-    @ApiOperation("유저 알림 삭제")
+    @ApiOperation("알림 삭제")
     @ApiResponses(value={
             @ApiResponse(code = 200,
                     message = "USER_NOTIFICATION_DELETED",
@@ -86,5 +88,4 @@ public class NotificationController {
         List<NotificationResponseDto> notificationResponseDtoList = userService.getNotificationsByPage(pageNumber - 1);
         return new ResponseEntity<>(notificationResponseDtoList, HttpStatus.OK);
     }
-
 }

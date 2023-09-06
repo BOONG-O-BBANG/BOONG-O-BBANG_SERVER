@@ -1,6 +1,8 @@
 package com.project.boongobbang.controller;
 
+import com.project.boongobbang.domain.dto.roommate.HistoryResponseDto;
 import com.project.boongobbang.domain.dto.roommate.RoommateResponseDto;
+import com.project.boongobbang.domain.dto.user.UserProfileDto;
 import com.project.boongobbang.domain.dto.user.UserResponseDto;
 import com.project.boongobbang.domain.entity.roommate.Notification;
 import com.project.boongobbang.domain.entity.roommate.Roommate;
@@ -40,7 +42,8 @@ public class RoommateController {
     })
     @ResponseStatus(HttpStatus.OK)
     @PostMapping("/request/{receiverEmail}")
-    public ResponseEntity<String> sendRoommateRequest(@PathVariable String receiverEmail){
+    public ResponseEntity<String> sendRoommateRequest(
+            @PathVariable String receiverEmail){
         String userNaverId = userService.getLoginUserInfo();
         User user = userService.findUserByUserNaverId(userNaverId);
         String senderUserEmail = user.getUserEmail();
@@ -68,8 +71,9 @@ public class RoommateController {
                     message = "SERVER_ERROR")
     })
     @ResponseStatus(HttpStatus.OK)
-    @PostMapping("/accept/{notificationId}")
-    public ResponseEntity<String> acceptRoommateRequest(@PathVariable Long notificationId){
+    @PostMapping("/request/accept/{notificationId}")
+    public ResponseEntity<String> acceptRoommateRequest(
+            @PathVariable Long notificationId){
         Notification notification = userService.findNotificationByNotificationId(notificationId);
         if(notification.getNotificationType() != NotificationType.REQUEST){
             return new ResponseEntity<>("수락할 수 있는 요청이 아닙니다", HttpStatus.BAD_REQUEST);
@@ -96,12 +100,13 @@ public class RoommateController {
     })
     @ResponseStatus(HttpStatus.OK)
     @DeleteMapping("/request/{notificationId}")
-    public ResponseEntity<String> deleteRequest(@PathVariable Long notificationId){
+    public ResponseEntity<String> deleteRequest(
+            @PathVariable Long notificationId){
         userService.deleteNotification(notificationId);
         return new ResponseEntity<>("룸메이트 신청을 거절했습니다", HttpStatus.OK);
     }
 
-    @ApiOperation("유저 룸메이트 관계 종료")
+    @ApiOperation("로그인 유저 룸메이트 관계 종료")
     @ApiResponses(value={
             @ApiResponse(code = 200,
                     message = "ROOMMATE_ENDED",
@@ -114,7 +119,7 @@ public class RoommateController {
                     message = "SERVER_ERROR")
     })
     @ResponseStatus(HttpStatus.OK)
-    @PatchMapping
+    @PatchMapping()
     public ResponseEntity<String> endRoommate(){
         String userNaverId = userService.getLoginUserInfo();
         User user = userService.findUserByUserNaverId(userNaverId);
@@ -147,4 +152,104 @@ public class RoommateController {
         List<RoommateResponseDto> roommateResponseDtoList = userService.getRoommateList();
         return new ResponseEntity<>(roommateResponseDtoList, HttpStatus.OK);
     }
+
+
+
+
+    @ApiOperation("로그인 유저의 매칭 상태 조회")
+    @ApiResponses(value={
+            @ApiResponse(code = 200,
+                    message = "USER_ROOMMATE_STATUS_FOUND",
+                    response = UserResponseDto.class),
+            @ApiResponse(code = 401,
+                    message = "UNAUTHORIZED_USER"),
+            @ApiResponse(code = 404,
+                    message = "USER_NOT_FOUND"),
+            @ApiResponse(code = 500,
+                    message = "SERVER_ERROR")
+    })
+    @ResponseStatus(HttpStatus.OK)
+    @GetMapping("/matching")
+    public ResponseEntity<List<UserProfileDto>> getUserMatchingStatus(){
+        String userNaverId = userService.getLoginUserInfo();
+        User user = userService.findUserByUserNaverId(userNaverId);
+
+        List<UserProfileDto> userAndRoommate = userService.getUserAndRoommate(user);
+        return new ResponseEntity<>(userAndRoommate, HttpStatus.OK);
+    }
+
+
+
+    @ApiOperation("로그인 유저 과거 룸메이트 목록 페이지로 조회")
+    @ApiResponses(value={
+            @ApiResponse(code = 200,
+                    message = "USER_PREVIOUS_ROOMMATES_FOUND",
+                    response = UserResponseDto.class),
+            @ApiResponse(code = 401,
+                    message = "UNAUTHORIZED_USER"),
+            @ApiResponse(code = 404,
+                    message = "USER_NOT_FOUND"),
+            @ApiResponse(code = 500,
+                    message = "SERVER_ERROR")
+    })
+    @ResponseStatus(HttpStatus.OK)
+    @GetMapping("/history/{pageNumber}")
+    public ResponseEntity<List<HistoryResponseDto>> getRoommateHistoryList(
+            @PathVariable int pageNumber){
+        String userNaverId = userService.getLoginUserInfo();
+        User user = userService.findUserByUserNaverId(userNaverId);
+
+        List<HistoryResponseDto> historyResponseDtoList = userService.returnUserPreviousRoommatesByPage(user, pageNumber - 1);
+        return new ResponseEntity<>(historyResponseDtoList, HttpStatus.OK);
+    }
+
+    @ApiOperation("유저 과거 룸메이트 평가")
+    @ApiResponses(value={
+            @ApiResponse(code = 200,
+                    message = "USER_PREVIOUS_ROOMMATES_RATED",
+                    response = UserResponseDto.class),
+            @ApiResponse(code = 401,
+                    message = "UNAUTHORIZED_USER"),
+            @ApiResponse(code = 404,
+                    message = "USER_NOT_FOUND"),
+            @ApiResponse(code = 500,
+                    message = "SERVER_ERROR")
+    })
+    @ResponseStatus(HttpStatus.OK)
+    @PostMapping("/score/{userScoreId}")
+    public ResponseEntity<String> rateRoommate(
+            @PathVariable Long userScoreId,
+            int score){
+        if(userService.validateUserScoreRated(userScoreId)){
+            return new ResponseEntity<>("이미 평가된 기록입니다", HttpStatus.BAD_REQUEST);
+        }
+        userService.rateRoommate(userScoreId, score);
+        return new ResponseEntity<>("룸메이트 평가 완료", HttpStatus.OK);
+    }
+
+
+
+
+    @ApiOperation("로그인 유저에게 룸메이트 추천")
+    @ApiResponses(value={
+            @ApiResponse(code = 200,
+                    message = "ROOMMATE_RECOMMENDATED",
+                    response = UserResponseDto.class),
+            @ApiResponse(code = 401,
+                    message = "UNAUTHORIZED_USER"),
+            @ApiResponse(code = 404,
+                    message = "USER_NOT_FOUND"),
+            @ApiResponse(code = 500,
+                    message = "SERVER_ERROR")
+    })
+    @ResponseStatus(HttpStatus.OK)
+    @GetMapping("/recommendation")
+    public ResponseEntity<List<UserProfileDto>> recommendRoommateList(){
+        String userNaverId = userService.getLoginUserInfo();
+        User user = userService.findUserByUserNaverId(userNaverId);
+
+        List<UserProfileDto> recommandedRoomates = userService.recommandRoommates(user);
+        return new ResponseEntity<>(recommandedRoomates, HttpStatus.OK);
+    }
+
 }
