@@ -1,5 +1,6 @@
 package com.project.boongobbang.controller;
 
+import com.project.boongobbang.domain.dto.roommate.RoommateResponseDto;
 import com.project.boongobbang.domain.dto.user.UserResponseDto;
 import com.project.boongobbang.domain.entity.roommate.Notification;
 import com.project.boongobbang.domain.entity.roommate.Roommate;
@@ -14,6 +15,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Api(tags = "룸메이트 API")
 @RestController
@@ -96,5 +99,43 @@ public class RoommateController {
     public ResponseEntity<String> deleteRequest(@PathVariable Long notificationId){
         userService.deleteNotification(notificationId);
         return new ResponseEntity<>("룸메이트 신청을 거절했습니다", HttpStatus.OK);
+    }
+
+    @ApiOperation("유저 룸메이트 관계 종료")
+    @ApiResponses(value={
+            @ApiResponse(code = 200,
+                    message = "ROOMMATE_ENDED",
+                    response = UserResponseDto.class),
+            @ApiResponse(code = 401,
+                    message = "UNAUTHORIZED_USER"),
+            @ApiResponse(code = 404,
+                    message = "USER_NOT_FOUND"),
+            @ApiResponse(code = 500,
+                    message = "SERVER_ERROR")
+    })
+    @ResponseStatus(HttpStatus.OK)
+    @PatchMapping("/{roommateId}")
+    public ResponseEntity<String> endRoommate(@PathVariable Long roommateId){
+        userService.endRoommate(roommateId);
+        return new ResponseEntity<>("룸메이트 관계를 끊었습니다", HttpStatus.OK);
+    }
+
+    @ApiOperation("전체 룸메이트 조회")
+    @ApiResponses(value={
+            @ApiResponse(code = 200,
+                    message = "ROOMMATES_FOUND",
+                    response = UserResponseDto.class),
+            @ApiResponse(code = 401,
+                    message = "UNAUTHORIZED_USER"),
+            @ApiResponse(code = 404,
+                    message = "ROOMMATES_NOT_FOUND"),
+            @ApiResponse(code = 500,
+                    message = "SERVER_ERROR")
+    })
+    @ResponseStatus(HttpStatus.OK)
+    @GetMapping
+    public ResponseEntity<List<RoommateResponseDto>> getAllRoommates(){
+        List<RoommateResponseDto> roommateResponseDtoList = userService.getRoommateList();
+        return new ResponseEntity<>(roommateResponseDtoList, HttpStatus.OK);
     }
 }

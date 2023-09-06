@@ -16,6 +16,6 @@ public interface RoommateRepository extends JpaRepository<Roommate, Long> {
     Roommate findRoommateByUsers(@Param("userEmail1") String userEmail1, @Param("userEmail2") String userEmail2);
 
     @Query("FROM Roommate r WHERE (r.user1.userEmail = :userEmail) OR (r.user2.userEmail = :userEmail)")
-    List<Roommate> findRoommatesByUserId(@Param("userEmail") String userEmail);
+    List<Roommate> findRoommatesByUserEmail(@Param("userEmail") String userEmail);
 
 }
