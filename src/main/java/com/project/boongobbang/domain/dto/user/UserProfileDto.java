@@ -5,6 +5,7 @@ import com.project.boongobbang.domain.entity.user.User;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -17,7 +18,7 @@ public class UserProfileDto {
 
     private String username;
     private String userMBTI;
-    private String userBirth;
+    private int userAge;
     private String userLocation;
     private String userCleanCount;
 
@@ -38,7 +39,7 @@ public class UserProfileDto {
 
         this.username = user.getUsername();
         this.userMBTI = user.getUserMBTI().toString();
-        this.userBirth = user.getUserBirth().toString();
+        this.userAge = LocalDate.now().getYear() - user.getUserBirth().getYear();
         this.userLocation = user.getUserLocation().toString();
         this.userCleanCount = user.getUserCleanCount().toString();
 
@@ -59,7 +60,7 @@ public class UserProfileDto {
 
         this.username = user.getUsername();
         this.userMBTI = user.getUserMBTI().toString();
-        this.userBirth = user.getUserBirth().toString();
+        this.userAge = LocalDate.now().getYear() - user.getUserBirth().getYear();
         this.userLocation = user.getUserLocation().toString();
         this.userCleanCount = user.getUserCleanCount().toString();
 
