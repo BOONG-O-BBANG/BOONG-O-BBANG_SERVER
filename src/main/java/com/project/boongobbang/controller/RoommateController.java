@@ -1,7 +1,6 @@
 package com.project.boongobbang.controller;
 
 import com.project.boongobbang.domain.dto.roommate.HistoryResponseDto;
-import com.project.boongobbang.domain.dto.roommate.RoommateResponseDto;
 import com.project.boongobbang.domain.dto.user.UserProfileDto;
 import com.project.boongobbang.domain.dto.user.UserResponseDto;
 import com.project.boongobbang.domain.entity.roommate.Notification;
@@ -133,26 +132,6 @@ public class RoommateController {
         userService.endRoommate(roommate.getRoommateId());
         return new ResponseEntity<>("룸메이트 관계를 끊었습니다", HttpStatus.OK);
     }
-
-    @ApiOperation("전체 룸메이트 조회")
-    @ApiResponses(value={
-            @ApiResponse(code = 200,
-                    message = "ROOMMATES_FOUND",
-                    response = UserResponseDto.class),
-            @ApiResponse(code = 401,
-                    message = "UNAUTHORIZED_USER"),
-            @ApiResponse(code = 404,
-                    message = "ROOMMATES_NOT_FOUND"),
-            @ApiResponse(code = 500,
-                    message = "SERVER_ERROR")
-    })
-    @ResponseStatus(HttpStatus.OK)
-    @GetMapping
-    public ResponseEntity<List<RoommateResponseDto>> getAllRoommates(){
-        List<RoommateResponseDto> roommateResponseDtoList = userService.getRoommateList();
-        return new ResponseEntity<>(roommateResponseDtoList, HttpStatus.OK);
-    }
-
 
 
 

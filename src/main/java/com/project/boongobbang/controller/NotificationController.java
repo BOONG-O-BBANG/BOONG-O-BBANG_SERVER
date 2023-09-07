@@ -1,8 +1,6 @@
 package com.project.boongobbang.controller;
 
-import com.project.boongobbang.domain.dto.roommate.HistoryResponseDto;
 import com.project.boongobbang.domain.dto.roommate.NotificationResponseDto;
-import com.project.boongobbang.domain.dto.user.UserProfileDto;
 import com.project.boongobbang.domain.dto.user.UserResponseDto;
 import com.project.boongobbang.domain.entity.user.User;
 import com.project.boongobbang.service.UserService;
@@ -69,23 +67,4 @@ public class NotificationController {
         return new ResponseEntity<>("알림을 삭제했습니다", HttpStatus.OK);
     }
 
-    @ApiOperation("전체 알림 페이지로 조회")
-    @ApiResponses(value={
-            @ApiResponse(code = 200,
-                    message = "NOTIFICATION_FOUND",
-                    response = UserResponseDto.class),
-            @ApiResponse(code = 401,
-                    message = "UNAUTHORIZED_USER"),
-            @ApiResponse(code = 404,
-                    message = "NOTIFICATION_NOT_FOUND"),
-            @ApiResponse(code = 500,
-                    message = "SERVER_ERROR")
-    })
-    @ResponseStatus(HttpStatus.OK)
-    @GetMapping("/all/{pageNumber}")
-    public ResponseEntity<List<NotificationResponseDto>> getAllNotifications(
-            @PathVariable int pageNumber){
-        List<NotificationResponseDto> notificationResponseDtoList = userService.getNotificationsByPage(pageNumber - 1);
-        return new ResponseEntity<>(notificationResponseDtoList, HttpStatus.OK);
-    }
 }

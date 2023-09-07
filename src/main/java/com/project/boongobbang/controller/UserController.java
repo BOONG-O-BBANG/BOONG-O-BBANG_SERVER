@@ -141,25 +141,6 @@ public class UserController {
         return new ResponseEntity<>(userProfileDto, HttpStatus.CREATED);
     }
 
-    @ApiOperation("전체 유저 페이지로 조회")
-    @ApiResponses(value={
-            @ApiResponse(code = 200,
-                    message = "USERS_FOUND",
-                    response = UserResponseDto.class),
-            @ApiResponse(code = 401,
-                    message = "UNAUTHORIZED_USER"),
-            @ApiResponse(code = 404,
-                    message = "USERS_NOT_FOUND"),
-            @ApiResponse(code = 500,
-                    message = "SERVER_ERROR")
-    })
-    @ResponseStatus(HttpStatus.OK)
-    @GetMapping("/page/{pageNumber}")
-    public ResponseEntity<List<UserSimpleDto>> getAllUsersByPage(
-            @PathVariable int pageNumber) {
-        List<UserSimpleDto> userSimpleDtoList = userService.getUsersByPage(pageNumber - 1);
-        return new ResponseEntity<>(userSimpleDtoList, HttpStatus.OK);
-    }
 
     @ApiOperation("로그인 유저 정보 수정")
     @ApiResponses(value={
