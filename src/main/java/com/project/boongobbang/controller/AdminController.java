@@ -29,7 +29,7 @@ public class AdminController {
     @ApiOperation("전체 알림 페이지로 조회")
     @ApiResponses(value={
             @ApiResponse(code = 200,
-                    message = "NOTIFICATION_FOUND",
+                    message = "NOTIFICATIONS_FOUND",
                     response = UserResponseDto.class),
             @ApiResponse(code = 401,
                     message = "UNAUTHORIZED_USER"),
@@ -88,7 +88,7 @@ public class AdminController {
         return new ResponseEntity<>(userSimpleDtoList, HttpStatus.OK);
     }
 
-    @ApiOperation("로그인 유저 스스로 탈퇴 (임시)")
+    @ApiOperation("유저 계정 삭제")
     @ApiResponses(value={
             @ApiResponse(code = 200,
                     message = "USER_DELETED",
@@ -101,11 +101,11 @@ public class AdminController {
                     message = "SERVER_ERROR")
     })
     @ResponseStatus(HttpStatus.OK)
-    @DeleteMapping
-    public ResponseEntity<UserProfileDto> deleteUser() {
-        String userNaverId = userService.getLoginUserInfo();
-        User user = userService.findUserByUserNaverId(userNaverId);
-
+    @DeleteMapping("/{userEmail}")
+    public ResponseEntity<UserProfileDto> deleteUser(
+            @PathVariable String userEmail
+    ) {
+        User user = userService.findUserByUserEmail(userEmail);
         UserProfileDto userProfileDto = userService.deleteUser(user.getUserEmail());
         return new ResponseEntity<>(userProfileDto, HttpStatus.OK);
     }
