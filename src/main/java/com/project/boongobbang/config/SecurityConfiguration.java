@@ -34,7 +34,7 @@ public class SecurityConfiguration {
                         "/h2-console/**",
                         "/favicon.ico",
                         "/users/signin", "/users/signup").permitAll()
-                .antMatchers("/**/admin/**").hasRole("ADMIN")
+                .antMatchers("/**/admins/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
                 .and()
                 .sessionManagement()

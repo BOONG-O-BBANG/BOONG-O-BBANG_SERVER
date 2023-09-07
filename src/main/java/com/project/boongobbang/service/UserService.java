@@ -318,10 +318,13 @@ public class UserService {
     }
 
     //전체 룸메이트 검색
-    public List<RoommateResponseDto> getRoommateList(){
-        return roommateRepository.findAll().stream()
+    public List<RoommateResponseDto> getRoommateList(int pageNumber){
+        Pageable pageable = PageRequest.of(pageNumber, 10);
+        Page<Roommate> roommatePage = roommateRepository.findAll(pageable);
+        return roommatePage.stream()
                 .map(roommate -> new RoommateResponseDto(roommate))
                 .collect(Collectors.toList());
+
     }
 
     //유저의 현재 룸메이트 매칭상태 조회(메인 페이지)
