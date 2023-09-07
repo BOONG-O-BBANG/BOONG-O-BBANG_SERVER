@@ -85,24 +85,12 @@ public class JwtUtils {
                 .compact();
     }
 
-    public Boolean isTokenValid(String token) {
-        try {
+    public Boolean isTokenValid(String token) throws JwtException{
             return Jwts.parser()
                     .setSigningKey(secretKey)
                     .parseClaimsJws(token)
                     .getBody()
                     .getExpiration()
                     .after(new Date());
-        } catch (ExpiredJwtException e) {
-            return false;
-        } catch (UnsupportedJwtException e) {
-            throw new JwtException("UnsupportedJwtException");
-        } catch (MalformedJwtException e) {
-            throw new JwtException("MalformedJwtException");
-        } catch (SignatureException e) {
-            throw new JwtException("SignatureException");
-        } catch (IllegalArgumentException e) {
-            throw new JwtException("IllegalArgumentException");
-        }
     }
 }

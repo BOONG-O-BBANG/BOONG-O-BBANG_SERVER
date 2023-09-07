@@ -3,6 +3,7 @@ package com.project.boongobbang.jwt;
 import com.project.boongobbang.exception.AppException;
 import com.project.boongobbang.exception.ErrorCode;
 import com.project.boongobbang.service.CustomUserDetailsService;
+import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -42,22 +43,26 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         }
 
         accessToken = authHeader.substring(7);
+        try {
+            if (jwtUtils.isTokenValid(accessToken)) {
+                userNaverId = jwtUtils.extractUsername(accessToken);
+                UserDetails userDetails = customUserDetailsService.loadUserByUsername(userNaverId);
 
-        if (jwtUtils.isTokenValid(accessToken)) {
-            userNaverId = jwtUtils.extractUsername(accessToken);
-            UserDetails userDetails = customUserDetailsService.loadUserByUsername(userNaverId);
+                RequestContextHolder.currentRequestAttributes()
+                        .setAttribute(AUTHORIZATION, accessToken, RequestAttributes.SCOPE_REQUEST);
 
-            RequestContextHolder.currentRequestAttributes()
-                    .setAttribute(AUTHORIZATION, accessToken, RequestAttributes.SCOPE_REQUEST);
+                UsernamePasswordAuthenticationToken authenticationToken =
+                        new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
+                authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(authenticationToken);
 
-            UsernamePasswordAuthenticationToken authenticationToken =
-                    new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
-            authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-            SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-
-            filterChain.doFilter(request, response);
-        } else {
-            throw new AppException(ErrorCode.EXPIRED_TOKEN, "access token이 만료되었습니다.");
+                filterChain.doFilter(request, response);
+            } else {
+                throw new AppException(ErrorCode.EXPIRED_TOKEN, "access token이 만료되었습니다.");
+            }
+        } catch (JwtException e) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write(e.getClass().getSimpleName());
         }
     }
 }
