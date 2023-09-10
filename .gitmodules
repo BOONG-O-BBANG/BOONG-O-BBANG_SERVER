@@ -1,0 +1,4 @@
+[submodule "BOONG-O-BBANG_ENV"]
+	path = BOONG-O-BBANG_ENV
+	url = https://github.com/BOONG-O-BBANG/BOONG-O-BBANG_ENV.git
+	branch = main
