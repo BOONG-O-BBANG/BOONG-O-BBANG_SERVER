@@ -74,10 +74,12 @@ public class UserService {
     private final NotificationRepository notificationRepository;
 
 
+    //DB에 유저 정보 있는지 체크
     public Boolean validate(UserValidateDto dto) {
         return userRepository.existsByUserNaverId(dto.getUserNaverId());
     }
 
+    //로그인 유저 정보 추출
     public String getLoginUserInfo(){
         return jwtUtils.extractUsername(
                 (String) RequestContextHolder
@@ -86,6 +88,7 @@ public class UserService {
         );
     }
 
+    //회원가입
     public void signUp(UserSignUpDto dto) {
         userRepository.findByUserNaverId(dto.getUserNaverId()).ifPresent(user -> {
             throw new AppException(ErrorCode.USER_ALREADY_EXISTS, "이미 존재하는 회원입니다.");
@@ -160,6 +163,7 @@ public class UserService {
         return userTypeStr;
     }
 
+    //로그인
     public TokenResponseDto signIn(UserSignInDto dto) {
         String accessToken = (String) RequestContextHolder
                 .currentRequestAttributes()
@@ -182,6 +186,7 @@ public class UserService {
         return new TokenResponseDto(jwtUtils.generateToken(user));
     }
 
+    //유저 정보 업데이트
     @Transactional
     public User updateUser(User user, UserUpdateRequestDto dto) {
 
@@ -382,7 +387,7 @@ public class UserService {
 
 
 
-    /* DTO 반환 */
+    /*** DTO 반환 ***/
 
     //User(본인) 입력받아 UserProfileDto 반환
     //무조건 모든 정보를 공개
@@ -418,7 +423,7 @@ public class UserService {
 
 
 
-    //사진 관련
+    /*** 사진 관련 ***/
 
     //사진 저장
     @org.springframework.transaction.annotation.Transactional
@@ -533,7 +538,7 @@ public class UserService {
 
 
 
-    //룸메이트 관련
+    /*** 룸메이트 관련 ***/
 
     //룸메이트 요청 전송
     public Notification sendRoommateRequest(String senderUserEmail, String receiverUserEmail) {
@@ -690,14 +695,12 @@ public class UserService {
 
 
 
-
+    /*** 추천 알고리즘 관련 ***/
 
     //룸메이트 유저 추천
     public List<UserProfileDto> recommandRoommates(User user){
 
         return findMatchingRoommates(user).stream()
-//               .map(recommandedUser -> new UserSimpleDto(recommandedUser))
-//               .collect(Collectors.toList());
                 .map(recommandedUser -> new UserProfileDto(recommandedUser))
                 .collect(Collectors.toList());
     }
@@ -705,6 +708,7 @@ public class UserService {
     @PersistenceContext
     private EntityManager entityManager;
 
+    //룸메이트 추천 목록 반환
     public List<User> findMatchingRoommates(User user1) {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<User> cq = cb.createQuery(User.class);
@@ -721,20 +725,20 @@ public class UserService {
         List<User> resultList = entityManager.createQuery(cq).setMaxResults(100).getResultList();
 
         if (resultList.size() < 50) {
-            // Ignore userBirth
+            //나이를 무시하고 재검색
             cq.where(sameLocation, sameGender, isNotPaired, notSameUser);
             List<User> resultListWithoutAge = entityManager.createQuery(cq).setMaxResults(100).getResultList();
             resultList.addAll(resultListWithoutAge.stream().filter(user -> !resultList.contains(user)).collect(Collectors.toList()));
 
             if (resultList.size() < 50) {
-                // Ignore userLocation
+                //희망 거주지를 무시하고 재검색
                 cq.where(sameGender, isNotPaired, notSameUser);
                 List<User> resultListWithoutLocation = entityManager.createQuery(cq).setMaxResults(100).getResultList();
                 resultList.addAll(resultListWithoutLocation.stream().filter(user -> !resultList.contains(user)).collect(Collectors.toList()));
             }
         }
 
-        // Trim the list to 50 if necessary
+        //50명으로 추려서 반환
         return resultList.size() > 50 ? resultList.subList(0, 50) : resultList;
     }
 
@@ -742,7 +746,8 @@ public class UserService {
 
 
 
-    //
+    //ReIssue
+
     public TokenResponseDto reissue(ReIssueDto dto) {
         String findRefreshToken = refreshTokenRepository.findRefreshToken(dto.getUserNaverId());
 
