@@ -318,4 +318,22 @@ public class UserController {
 
         return ResponseEntity.ok().headers(headers).body("재발행 성공");
     }
+
+    @ApiOperation("헬스 체크")
+    @ApiResponses(value={
+            @ApiResponse(code = 200,
+                    message = "HEALTH_CHECKED",
+                    response = UserResponseDto.class),
+            @ApiResponse(code = 401,
+                    message = "UNAUTHORIZED_USER"),
+            @ApiResponse(code = 404,
+                    message = "USER_NOT_FOUND"),
+            @ApiResponse(code = 500,
+                    message = "SERVER_ERROR")
+    })
+    @ResponseStatus(HttpStatus.OK)
+    @GetMapping("/health")
+    public ResponseEntity<String> healthCheck() {
+        return new ResponseEntity<>("", HttpStatus.OK);
+    }
 }
