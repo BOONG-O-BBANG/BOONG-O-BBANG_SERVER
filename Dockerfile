@@ -2,19 +2,22 @@
 FROM openjdk:17-alpine
 
 # 작업 디렉토리를 설정합니다.
-WORKDIR /tmp
+WORKDIR /app
 
 # 서브모듈을 Docker 이미지에 추가합니다.
-COPY ./BOONG-O-BBANG_ENV /tmp/BOONG-O-BBANG_ENV
+COPY ./BOONG-O-BBANG_ENV /app/BOONG-O-BBANG_ENV
 
 # 소스 코드를 Docker 이미지에 추가합니다.
-COPY . /tmp
+COPY . .
+
+# ./gradlew 권한 부여
+
 
 # Gradle을 사용하여 프로젝트를 빌드합니다.
 RUN ./gradlew build
 
 # 빌드된 JAR 파일을 복사합니다. 프로젝트에 따라 파일 이름이 다를 수 있습니다.
-COPY build/libs/boongobbang-0.0.1-SNAPSHOT.jar /tmp/app.jar
+COPY build/libs/boongobbang-0.0.1-SNAPSHOT.jar /app/app.jar
 
 # 컨테이너가 실행될 때 실행할 명령을 지정합니다.
 CMD ["java", "-jar", "app.jar"]
