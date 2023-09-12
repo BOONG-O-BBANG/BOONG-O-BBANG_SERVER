@@ -1,5 +1,5 @@
 # OpenJDK 17을 기반으로 하는 공식 Java 이미지를 사용합니다.
-FROM adoptopenjdk/openjdk17:latest
+FROM openjdk:17-alpine
 
 # 작업 디렉토리를 설정합니다.
 WORKDIR /tmp
