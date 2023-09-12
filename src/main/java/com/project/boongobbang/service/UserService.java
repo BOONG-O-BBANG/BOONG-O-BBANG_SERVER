@@ -543,8 +543,8 @@ public class UserService {
 
         //receiverUser 에게 요청 수신 알림 생성
         StringBuilder requestMessage = new StringBuilder()
-                .append(senderUser.getUserNickname())
-                .append(" 님으로부터 룸메이트 신청을 받았습니다.");
+                .append(senderUser.getUsername())
+                .append("님으로부터 룸메이트 신청을 받았습니다.");
         Notification notification = Notification.builder()
                 .checkUser(receiverUser)
                 .relatedUser(senderUser)
@@ -604,14 +604,14 @@ public class UserService {
         Notification notification1 = baseNotification.toBuilder()
                 .checkUser(user1)
                 .relatedUser(user2)
-                .message(user2.getUserNickname() + baseNotificationMessage)
+                .message(user2.getUsername() + baseNotificationMessage)
                 .build();
         notificationRepository.save(notification1);
         log.info("notification2");
         Notification notification2 = baseNotification.toBuilder()
                 .checkUser(user2)
                 .relatedUser(user1)
-                .message(user1.getUserNickname() + baseNotificationMessage)
+                .message(user1.getUsername() + baseNotificationMessage)
                 .build();
         notificationRepository.save(notification2);
 
