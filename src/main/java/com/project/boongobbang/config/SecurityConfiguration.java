@@ -33,7 +33,7 @@ public class SecurityConfiguration {
                         "/v2/api-docs", "/swagger-resources/**", "/swagger-ui/index.html", "/swagger-ui.html","/webjars/**", "/swagger/**",   // swagger
                         "/h2-console/**",
                         "/favicon.ico","/**/reissue/**",
-                        "/users/signin", "/users/signup", "/users/health").permitAll()
+                        "/users/signin", "/users/signup").permitAll()
                 .antMatchers("/**/admins/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
                 .and()
