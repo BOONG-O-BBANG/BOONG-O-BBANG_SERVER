@@ -332,7 +332,7 @@ public class UserController {
     })
     @ResponseStatus(HttpStatus.OK)
     @GetMapping("/health")
-    public ResponseEntity<String> healthCheck() {
-        return new ResponseEntity<>("", HttpStatus.OK);
+    public String healthCheck() {
+        return "health ok";
     }
 }
