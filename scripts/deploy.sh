@@ -7,3 +7,5 @@ sudo docker pull givemesomefoodplz/boong-o-bbang_server:1.0
 docker run -d -p 80:8080 --name boong givemesomefoodplz/boong-o-bbang_server:1.0
 
 docker rmi -f $(docker images -f "dangling=true" -q) || true
+
+sudo apt-get install -y redis-server
