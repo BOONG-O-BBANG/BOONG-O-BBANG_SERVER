@@ -6,12 +6,6 @@ image_name="givemesomefoodplz/boong-o-bbang_server:1.0"
 # 컨테이너 이름
 container_name="boong"
 
-# 이미지 확인
-if docker images | grep -q "$image_name"; then
-    # 이미지가 존재하면 삭제
-    docker rmi "$image_name"
-fi
-
 # 컨테이너 확인 및 중지/제거
 if docker ps -a -q --filter "name=$container_name" | grep -q .; then
     docker stop "$container_name" && docker rm "$container_name"
