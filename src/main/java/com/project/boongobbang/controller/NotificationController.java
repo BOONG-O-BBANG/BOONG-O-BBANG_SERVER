@@ -19,7 +19,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/notifications")
 @RequiredArgsConstructor
-
+@CrossOrigin(origins = "http://jenkins-deploy-client.s3-website.ap-northeast-2.amazonaws.com")
 public class NotificationController {
 
     private final UserService userService;
