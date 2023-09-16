@@ -23,7 +23,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/roommates")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://jenkins-deploy-client.s3-website.ap-northeast-2.amazonaws.com")
 public class RoommateController {
     private final UserService userService;
 
