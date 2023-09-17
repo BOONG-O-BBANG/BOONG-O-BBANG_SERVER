@@ -2,10 +2,12 @@ package com.project.boongobbang.repository.roommate;
 
 import com.project.boongobbang.domain.entity.roommate.Roommate;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,5 +23,9 @@ public interface RoommateRepository extends JpaRepository<Roommate, Long> {
 
     @Query("FROM Roommate r WHERE (r.user1.userEmail = :userEmail) OR (r.user2.userEmail = :userEmail)")
     List<Roommate> findRoommatesByUserEmail(@Param("userEmail") String userEmail);
+
+    @Modifying
+    @Query("DELETE FROM Roommate r WHERE r.user1.userEmail = :userEmail OR r.user2.userEmail = :userEmail")
+    void deleteRoommatesByUserEmail(@Param("userEmail") String userEmail);
 
 }
