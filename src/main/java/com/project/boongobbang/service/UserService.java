@@ -236,6 +236,11 @@ public class UserService {
     @Transactional
     public UserProfileDto deleteUser(String userEmail) {
         User user = findUserByUserEmail(userEmail);
+
+        notificationRepository.deleteNotificationsByUserEmail(userEmail);
+        roommateRepository.deleteRoommatesByUserEmail(userEmail);
+        userScoreRepository.deleteUserScoresByUserEmail(userEmail);
+
         UserProfileDto dto = new UserProfileDto(user);
         userRepository.deleteUserByUserEmail(userEmail);
         return dto;

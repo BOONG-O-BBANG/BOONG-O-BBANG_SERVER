@@ -5,10 +5,12 @@ import com.project.boongobbang.domain.entity.user.UserScore;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -28,4 +30,9 @@ public interface UserScoreRepository extends JpaRepository<UserScore, Integer> {
     List<UserScore> findUserScore(@Param("userEmail") String userEmail, @Param("roommateEmail") String roommateEmail);
 
     UserScore findUserScoreByUserScoreId(Long userScoreId);
+
+    @Modifying
+    @Query("DELETE FROM UserScore us WHERE us.ratingUser.userEmail = :userEmail OR us.ratedUser.userEmail = :userEmail")
+    void deleteUserScoresByUserEmail(@Param("userEmail") String userEmail);
+
 }

@@ -60,10 +60,10 @@ public class BoongobbangApplication {
 						// 기본값
 						.ratedCount(0L)
 						.averageScore(null)
-						.sentRoommateList(new ArrayList<>())
-						.receivedRoommateList(new ArrayList<>())
+//						.sentRoommateList(new ArrayList<>())
+//						.receivedRoommateList(new ArrayList<>())
 						.receivedNotificationList(new ArrayList<>())
-						.gaveScoreList(new ArrayList<>())
+//						.gaveScoreList(new ArrayList<>())
 
 						// userType 설정
 						.userType(null)  // 이부분은 나중에 setUserType 메서드를 사용해서 설정
@@ -85,38 +85,38 @@ public class BoongobbangApplication {
 				userRepository.save(user);
 			}
 
-			List<User> allUsers = userRepository.findAll();
-			int roommateCount = 10; // 예를 들어, n개의 Roommate 객체를 생성한다고 가정
-			Set<User> pairedUsers = new HashSet<>(); // 이미 룸메이트 관계를 맺은 유저들을 저장
-
-			for (int i = 0; i < roommateCount; i++) {
-				User user1 = allUsers.get(random.nextInt(allUsers.size()));
-				while (pairedUsers.contains(user1)) {
-					user1 = allUsers.get(random.nextInt(allUsers.size()));
-				}
-
-				User user2 = allUsers.get(random.nextInt(allUsers.size()));
-				while (user1.equals(user2) || pairedUsers.contains(user2)) {
-					user2 = allUsers.get(random.nextInt(allUsers.size()));
-				}
-
-				pairedUsers.add(user1);
-				pairedUsers.add(user2);
-
-				user1.setIsPaired(true);
-				userRepository.save(user1);
-				user2.setIsPaired(true);
-				userRepository.save(user2);
-
-				Roommate roommate = Roommate.builder()
-						.user1(user1)
-						.user2(user2)
-						.build();
-
-				roommate.start(); // 시작 날짜 설정
-
-				roommateRepository.save(roommate); // Roommate 객체를 저장
-			}
+//			List<User> allUsers = userRepository.findAll();
+//			int roommateCount = 10; // 예를 들어, n개의 Roommate 객체를 생성한다고 가정
+//			Set<User> pairedUsers = new HashSet<>(); // 이미 룸메이트 관계를 맺은 유저들을 저장
+//
+//			for (int i = 0; i < roommateCount; i++) {
+//				User user1 = allUsers.get(random.nextInt(allUsers.size()));
+//				while (pairedUsers.contains(user1)) {
+//					user1 = allUsers.get(random.nextInt(allUsers.size()));
+//				}
+//
+//				User user2 = allUsers.get(random.nextInt(allUsers.size()));
+//				while (user1.equals(user2) || pairedUsers.contains(user2)) {
+//					user2 = allUsers.get(random.nextInt(allUsers.size()));
+//				}
+//
+//				pairedUsers.add(user1);
+//				pairedUsers.add(user2);
+//
+//				user1.setIsPaired(true);
+//				userRepository.save(user1);
+//				user2.setIsPaired(true);
+//				userRepository.save(user2);
+//
+//				Roommate roommate = Roommate.builder()
+//						.user1(user1)
+//						.user2(user2)
+//						.build();
+//
+//				roommate.start(); // 시작 날짜 설정
+//
+//				roommateRepository.save(roommate); // Roommate 객체를 저장
+//			}
 		};
 	}
 

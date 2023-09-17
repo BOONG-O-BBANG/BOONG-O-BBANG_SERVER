@@ -88,21 +88,21 @@ public class User {
     //MAPPING
 
     //Roommate
-    @OneToMany(mappedBy = "user1", cascade = CascadeType.PERSIST)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Roommate> sentRoommateList = new ArrayList<>();
 
-    @OneToMany(mappedBy = "user2", cascade = CascadeType.PERSIST)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Roommate> receivedRoommateList = new ArrayList<>();
 
     //Notification
-    @OneToMany(mappedBy = "checkUser")
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Notification> receivedNotificationList = new ArrayList<>();
 
     //UserScore
-    @OneToMany(mappedBy = "ratingUser", cascade = CascadeType.PERSIST)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UserScore> gaveScoreList = new ArrayList<>();
 
-    @OneToMany(mappedBy = "ratedUser", cascade = CascadeType.PERSIST)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UserScore> receivedScoreList = new ArrayList<>();
 
 
