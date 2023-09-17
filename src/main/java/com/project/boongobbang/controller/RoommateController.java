@@ -205,29 +205,4 @@ public class RoommateController {
         return new ResponseEntity<>("룸메이트 평가 완료", HttpStatus.OK);
     }
 
-
-
-
-    @ApiOperation("로그인 유저에게 룸메이트 추천")
-    @ApiResponses(value={
-            @ApiResponse(code = 200,
-                    message = "ROOMMATE_RECOMMENDATED",
-                    response = UserResponseDto.class),
-            @ApiResponse(code = 401,
-                    message = "UNAUTHORIZED_USER"),
-            @ApiResponse(code = 404,
-                    message = "USER_NOT_FOUND"),
-            @ApiResponse(code = 500,
-                    message = "SERVER_ERROR")
-    })
-    @ResponseStatus(HttpStatus.OK)
-    @GetMapping("/recommendation")
-    public ResponseEntity<List<UserProfileDto>> recommendRoommateList(){
-        String userNaverId = userService.getLoginUserInfo();
-        User user = userService.findUserByUserNaverId(userNaverId);
-
-        List<UserProfileDto> recommandedRoomates = userService.recommandRoommates(user);
-        return new ResponseEntity<>(recommandedRoomates, HttpStatus.OK);
-    }
-
 }
