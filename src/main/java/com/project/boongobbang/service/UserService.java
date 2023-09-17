@@ -15,6 +15,7 @@ import com.project.boongobbang.domain.entity.user.User;
 import com.project.boongobbang.domain.entity.user.UserScore;
 import com.project.boongobbang.enums.NotificationType;
 import com.project.boongobbang.enums.Role;
+import com.project.boongobbang.enums.UserType;
 import com.project.boongobbang.exception.AppException;
 import com.project.boongobbang.exception.ErrorCode;
 import com.project.boongobbang.jwt.JwtUtils;
@@ -23,9 +24,12 @@ import com.project.boongobbang.repository.roommate.NotificationRepository;
 import com.project.boongobbang.repository.roommate.RoommateRepository;
 import com.project.boongobbang.repository.user.UserRepository;
 import com.project.boongobbang.repository.user.UserScoreRepository;
+import com.project.boongobbang.repository.user.UserTypeFavorRepository;
+import com.project.boongobbang.util.UserTypeFavor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -72,6 +76,7 @@ public class UserService {
     private final RoommateRepository roommateRepository;
     private final UserScoreRepository userScoreRepository;
     private final NotificationRepository notificationRepository;
+    private final UserTypeFavorRepository userTypeFavorRepository;
 
 
     //DB에 유저 정보 있는지 체크
@@ -620,6 +625,37 @@ public class UserService {
                 .build();
         notificationRepository.save(notification2);
 
+
+        /* 룸메이트가 생성되면
+        1/ UserTypeFavor 의 userTypeCode1 과 userTypeCode2 의 userType 을 갖고있는 UserTypeFavor 을 검색
+            => userTypeFavor
+
+        2/ userTypeFavor 가 있으면 count++
+            userTypeFavor 가 없으면 count = 1 로 생성
+         */
+
+        UserType userTypeCode1 = user1.getUserType();
+        UserType userTypeCode2 = user2.getUserType();
+
+        // 이미 해당 UserType 조합으로 생성된 UserTypeFavor가 있는지 검색
+        Optional<UserTypeFavor> optionalUserTypeFavor = userTypeFavorRepository.findByUserTypeCodes(userTypeCode1, userTypeCode2);
+
+        UserTypeFavor userTypeFavor;
+        if(optionalUserTypeFavor.isPresent()) {
+            // UserTypeFavor 가 이미 존재하면 count 증가
+            userTypeFavor = optionalUserTypeFavor.get();
+            userTypeFavor.setCount(userTypeFavor.getCount() + 1);
+        } else {
+            // UserTypeFavor 가 없다면 새로 생성
+            userTypeFavor = UserTypeFavor.builder()
+                    .userTypeCode1(userTypeCode1)
+                    .userTypeCode2(userTypeCode2)
+                    .count(1)
+                    .build();
+        }
+
+        userTypeFavorRepository.save(userTypeFavor);
+
         return newRoommate;
     }
 
@@ -698,49 +734,47 @@ public class UserService {
     /*** 추천 알고리즘 관련 ***/
 
     //룸메이트 유저 추천
-    public List<UserProfileDto> recommandRoommates(User user){
+    public List<UserProfileDto> recommendRoommatesPageable(User user, int pageNumber) {
 
-        return findMatchingRoommates(user).stream()
-                .map(recommandedUser -> new UserProfileDto(recommandedUser))
-                .collect(Collectors.toList());
+        Pageable pageable = PageRequest.of(pageNumber, 10);
+
+        Page<User> matchingRoommates = findMatchingRoommatesPageable(user, pageable);
+        return matchingRoommates.stream().map(UserProfileDto::new).collect(Collectors.toList());
     }
 
-    @PersistenceContext
-    private EntityManager entityManager;
+    public Page<User> findMatchingRoommatesPageable(User user1, Pageable pageable) {
+        Set<User> recommendedUsers = new HashSet<>();
 
-    //룸메이트 추천 목록 반환
-    public List<User> findMatchingRoommates(User user1) {
-        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-        CriteriaQuery<User> cq = cb.createQuery(User.class);
-        Root<User> userRoot = cq.from(User.class);
+        // 1순위
+        List<UserType> favoredUserTypes = userTypeFavorRepository.findFavoredUserTypesByUserType(user1.getUserType());
+        List<User> priority1Users = userRepository.findUsersByPriority1(favoredUserTypes, user1.getUserLocation().name(), user1.getUserGender().name(), user1.getUserBirth(), pageable);
+        recommendedUsers.addAll(priority1Users);
 
-        Predicate sameLocation = cb.equal(userRoot.get("userLocation"), user1.getUserLocation());
-        Predicate sameGender = cb.equal(userRoot.get("userGender"), user1.getUserGender());
-        Predicate isNotPaired = cb.equal(userRoot.get("isPaired"), false);
-        Predicate ageDifference = cb.between(userRoot.get("userBirth"), user1.getUserBirth().minusYears(3), user1.getUserBirth().plusYears(3));
-        Predicate notSameUser = cb.notEqual(userRoot.get("userEmail"), user1.getUserEmail());
-
-        cq.where(sameLocation, sameGender, isNotPaired, ageDifference, notSameUser);
-
-        List<User> resultList = entityManager.createQuery(cq).setMaxResults(100).getResultList();
-
-        if (resultList.size() < 50) {
-            //나이를 무시하고 재검색
-            cq.where(sameLocation, sameGender, isNotPaired, notSameUser);
-            List<User> resultListWithoutAge = entityManager.createQuery(cq).setMaxResults(100).getResultList();
-            resultList.addAll(resultListWithoutAge.stream().filter(user -> !resultList.contains(user)).collect(Collectors.toList()));
-
-            if (resultList.size() < 50) {
-                //희망 거주지를 무시하고 재검색
-                cq.where(sameGender, isNotPaired, notSameUser);
-                List<User> resultListWithoutLocation = entityManager.createQuery(cq).setMaxResults(100).getResultList();
-                resultList.addAll(resultListWithoutLocation.stream().filter(user -> !resultList.contains(user)).collect(Collectors.toList()));
-            }
+        // 2순위
+        if(recommendedUsers.size() < 50) {
+            Page<User> priority2Users = userRepository.findByUserLocationAndUserGenderExcludingUsers(user1.getUserLocation().name(), user1.getUserGender().name(), recommendedUsers, pageable);
+            recommendedUsers.addAll(priority2Users.getContent());
         }
 
-        //50명으로 추려서 반환
-        return resultList.size() > 50 ? resultList.subList(0, 50) : resultList;
+        // 3순위
+        if(recommendedUsers.size() < 50) {
+            Page<User> priority3Users = userRepository.findByUserGenderExcludingUsers(user1.getUserGender().name(), recommendedUsers, pageable);
+            recommendedUsers.addAll(priority3Users.getContent());
+        }
+
+        // 4순위
+        if(recommendedUsers.size() < 50) {
+            Page<User> allUsers = userRepository.findAllExcludingUsers(recommendedUsers, pageable);
+            recommendedUsers.addAll(allUsers.getContent());
+        }
+
+        List<User> finalRecommendations = recommendedUsers.stream()
+                .limit(50)
+                .collect(Collectors.toList());
+
+        return new PageImpl<>(finalRecommendations, pageable, finalRecommendations.size());
     }
+
 
 
 
