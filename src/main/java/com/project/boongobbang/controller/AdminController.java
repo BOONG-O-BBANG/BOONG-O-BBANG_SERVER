@@ -22,7 +22,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/admins")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://jenkins-deploy-client.s3-website.ap-northeast-2.amazonaws.com")
 public class AdminController {
     private final UserService userService;
 
