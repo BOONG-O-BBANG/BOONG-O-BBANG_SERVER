@@ -10,6 +10,9 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.transaction.Transactional;
 import java.io.IOException;
+import java.util.List;
 
 
 @Api(tags = "유저 API")
@@ -317,5 +321,37 @@ public class UserController {
         headers.add("Authorization", "Bearer " + tokenResponseDto.getAccessToken());
 
         return ResponseEntity.ok().headers(headers).body("재발행 성공");
+    }
+
+
+
+
+
+
+
+
+    @ApiOperation("로그인 유저에게 추천되는 룸메이트 목록 페이지별로 조회")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200,
+                    message = "ROOMMATES_RECOMMENDED",
+                    response = UserProfileDto.class, responseContainer = "List"),
+            @ApiResponse(code = 401,
+                    message = "UNAUTHORIZED_USER"),
+            @ApiResponse(code = 404,
+                    message = "USER_NOT_FOUND"),
+            @ApiResponse(code = 500,
+                    message = "SERVER_ERROR")
+    })
+    @ResponseStatus(HttpStatus.OK)
+    @GetMapping("/recommendations/{pageNumber}")
+    public ResponseEntity<List<UserProfileDto>> getRecommendedRoommatesPageable(
+            @PathVariable int pageNumber) {
+
+        String userNaverId = userService.getLoginUserInfo();
+        User user = userService.findUserByUserNaverId(userNaverId);
+
+        List<UserProfileDto> recommendedUsers = userService.recommendRoommatesPageable(user, pageNumber - 1);
+
+        return new ResponseEntity<>(recommendedUsers, HttpStatus.OK);
     }
 }
