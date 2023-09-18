@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Api(tags = "헬스 체크")
 @RestController
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://jenkins-deploy-client.s3-website.ap-northeast-2.amazonaws.com")
+//@CrossOrigin(origins = "http://jenkins-deploy-client.s3-website.ap-northeast-2.amazonaws.com")
 public class HealthController {
     @ApiOperation("Health Check")
     @ApiResponses(value={
