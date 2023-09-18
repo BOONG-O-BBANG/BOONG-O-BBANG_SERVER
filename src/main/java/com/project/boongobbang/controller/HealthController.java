@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @CrossOrigin(origins = "http://jenkins-deploy-client.s3-website.ap-northeast-2.amazonaws.com")
 public class HealthController {
-    @ApiOperation("헬스 체크")
+    @ApiOperation("Health Check")
     @ApiResponses(value={
             @ApiResponse(code = 200,
                     message = "HEALTH_CHECKED",
