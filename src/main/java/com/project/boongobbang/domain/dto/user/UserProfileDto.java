@@ -5,6 +5,7 @@ import com.project.boongobbang.domain.entity.user.User;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 
 @Getter
@@ -29,7 +30,7 @@ public class UserProfileDto {
 
     private String userIntroduction;
 
-    private BigDecimal userAverageScore;
+    private int userAverageScore;
     private String userMobile; //룸메이트 되었을 경우 나타남
 
     //자신의 프로필 조회
@@ -50,7 +51,7 @@ public class UserProfileDto {
 
         this.userIntroduction = user.getUserIntroduction();
 
-        this.userAverageScore = user.getAverageScore();
+        this.userAverageScore = user.getAverageScore().setScale(0, RoundingMode.HALF_UP).intValue();
         this.userMobile = user.getUserMobile();
     }
 
@@ -71,7 +72,7 @@ public class UserProfileDto {
 
         this.userIntroduction = user.getUserIntroduction();
 
-        this.userAverageScore = user.getAverageScore();
+        this.userAverageScore = user.getAverageScore().setScale(0, RoundingMode.HALF_UP).intValue();
         // 룸메이트 관계라면 userMobile 반환
         this.userMobile = isRoommate ? user.getUserMobile() : null;
     }

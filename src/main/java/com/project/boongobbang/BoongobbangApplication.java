@@ -12,6 +12,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -58,8 +59,8 @@ public class BoongobbangApplication {
 						.userPhotoUrl("")
 
 						// 기본값
-						.ratedCount(0L)
-						.averageScore(null)
+						.ratedCount(0L).averageScore(new BigDecimal(random.nextInt(6))
+)
 						.sentRoommateList(new ArrayList<>())
 						.receivedRoommateList(new ArrayList<>())
 						.receivedNotificationList(new ArrayList<>())
