@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 public class HealthController {
-    @ApiOperation("헬스 체크")
+    @ApiOperation("Health Check")
     @ApiResponses(value={
             @ApiResponse(code = 200,
                     message = "HEALTH_CHECKED",
