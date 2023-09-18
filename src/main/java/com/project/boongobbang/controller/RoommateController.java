@@ -23,7 +23,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/roommates")
 @RequiredArgsConstructor
-
 public class RoommateController {
     private final UserService userService;
 
