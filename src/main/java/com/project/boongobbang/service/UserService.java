@@ -15,6 +15,7 @@ import com.project.boongobbang.domain.entity.user.User;
 import com.project.boongobbang.domain.entity.user.UserScore;
 import com.project.boongobbang.enums.NotificationType;
 import com.project.boongobbang.enums.Role;
+import com.project.boongobbang.enums.UserType;
 import com.project.boongobbang.exception.AppException;
 import com.project.boongobbang.exception.ErrorCode;
 import com.project.boongobbang.jwt.JwtUtils;
@@ -23,6 +24,7 @@ import com.project.boongobbang.repository.roommate.NotificationRepository;
 import com.project.boongobbang.repository.roommate.RoommateRepository;
 import com.project.boongobbang.repository.user.UserRepository;
 import com.project.boongobbang.repository.user.UserScoreRepository;
+import com.project.boongobbang.repository.user.UserTypeFavorRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -72,6 +74,7 @@ public class UserService {
     private final RoommateRepository roommateRepository;
     private final UserScoreRepository userScoreRepository;
     private final NotificationRepository notificationRepository;
+    private final UserTypeFavorRepository userTypeFavorRepository;
 
 
     //DB에 유저 정보 있는지 체크
@@ -698,49 +701,54 @@ public class UserService {
     /*** 추천 알고리즘 관련 ***/
 
     //룸메이트 유저 추천
-    public List<UserProfileDto> recommandRoommates(User user){
+    public List<UserProfileDto> recommendRoommates(User user) {
+        log.info("========== 추천 시작 ==========\n");
+        long startTime = System.currentTimeMillis(); // 시작 시간 측정
 
-        return findMatchingRoommates(user).stream()
-                .map(recommandedUser -> new UserProfileDto(recommandedUser))
+        Set<UserProfileDto> recommendedDtos = new LinkedHashSet<>();
+
+        // 1st priority
+        List<UserType> favoredUserTypes = userTypeFavorRepository.findFavoredUserTypesByUserType(user.getUserType());
+        log.info("Favored User Types: {}", favoredUserTypes);
+        recommendedDtos.addAll(userRepository.findUserProfileDtosByPriority1(favoredUserTypes, user.getUserLocation(), user.getUserGender(), user.getUserBirth()));
+
+        // For excluding users
+        List<String> excludedEmails = recommendedDtos.stream()
+                .map(UserProfileDto::getUserEmail)
                 .collect(Collectors.toList());
-    }
+        excludedEmails.add(user.getUserEmail()); // exclude the requesting user itself
 
-    @PersistenceContext
-    private EntityManager entityManager;
-
-    //룸메이트 추천 목록 반환
-    public List<User> findMatchingRoommates(User user1) {
-        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-        CriteriaQuery<User> cq = cb.createQuery(User.class);
-        Root<User> userRoot = cq.from(User.class);
-
-        Predicate sameLocation = cb.equal(userRoot.get("userLocation"), user1.getUserLocation());
-        Predicate sameGender = cb.equal(userRoot.get("userGender"), user1.getUserGender());
-        Predicate isNotPaired = cb.equal(userRoot.get("isPaired"), false);
-        Predicate ageDifference = cb.between(userRoot.get("userBirth"), user1.getUserBirth().minusYears(3), user1.getUserBirth().plusYears(3));
-        Predicate notSameUser = cb.notEqual(userRoot.get("userEmail"), user1.getUserEmail());
-
-        cq.where(sameLocation, sameGender, isNotPaired, ageDifference, notSameUser);
-
-        List<User> resultList = entityManager.createQuery(cq).setMaxResults(100).getResultList();
-
-        if (resultList.size() < 50) {
-            //나이를 무시하고 재검색
-            cq.where(sameLocation, sameGender, isNotPaired, notSameUser);
-            List<User> resultListWithoutAge = entityManager.createQuery(cq).setMaxResults(100).getResultList();
-            resultList.addAll(resultListWithoutAge.stream().filter(user -> !resultList.contains(user)).collect(Collectors.toList()));
-
-            if (resultList.size() < 50) {
-                //희망 거주지를 무시하고 재검색
-                cq.where(sameGender, isNotPaired, notSameUser);
-                List<User> resultListWithoutLocation = entityManager.createQuery(cq).setMaxResults(100).getResultList();
-                resultList.addAll(resultListWithoutLocation.stream().filter(user -> !resultList.contains(user)).collect(Collectors.toList()));
-            }
+        // 2nd priority
+        if (recommendedDtos.size() < 50) {
+            List<UserProfileDto> secondPriorityDtos = userRepository.findUserProfileDtosByPriority2(user.getUserLocation(), user.getUserGender(), excludedEmails);
+            recommendedDtos.addAll(secondPriorityDtos);
+            excludedEmails.addAll(secondPriorityDtos.stream()
+                    .map(UserProfileDto::getUserEmail)
+                    .collect(Collectors.toList())); // Add 2nd priority users to the excluded list
         }
 
-        //50명으로 추려서 반환
-        return resultList.size() > 50 ? resultList.subList(0, 50) : resultList;
+        // 3rd priority
+        if (recommendedDtos.size() < 50) {
+            List<UserProfileDto> thirdPriorityDtos = userRepository.findUserProfileDtosByPriority3(user.getUserGender(), excludedEmails);
+            recommendedDtos.addAll(thirdPriorityDtos);
+            excludedEmails.addAll(thirdPriorityDtos.stream()
+                    .map(UserProfileDto::getUserEmail)
+                    .collect(Collectors.toList())); // Add 3rd priority users to the excluded list
+        }
+
+        // 4th priority
+        if (recommendedDtos.size() < 50) {
+            recommendedDtos.addAll(userRepository.findUserProfileDtosByPriority4(excludedEmails));
+        }
+
+        long endTime = System.currentTimeMillis(); // 종료 시간 측정
+        long duration = endTime - startTime; // 시간 차이 계산
+
+        log.info("Recommendation processing time: {} ms", duration); // 측정된 시간을 로그로 출력
+
+        return new ArrayList<>(recommendedDtos);
     }
+
 
 
 
