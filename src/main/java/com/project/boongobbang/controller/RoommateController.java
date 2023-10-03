@@ -226,7 +226,7 @@ public class RoommateController {
         String userNaverId = userService.getLoginUserInfo();
         User user = userService.findUserByUserNaverId(userNaverId);
 
-        List<UserProfileDto> recommandedRoomates = userService.recommandRoommates(user);
+        List<UserProfileDto> recommandedRoomates = userService.recommendRoommates(user);
         return new ResponseEntity<>(recommandedRoomates, HttpStatus.OK);
     }
 
